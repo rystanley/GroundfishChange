@@ -155,27 +155,21 @@ ggplot(percent_pref, aes(x = Year, y = proportion)) +
   geom_line() + facet_wrap(~ZONE) + 
   geom_errorbar(aes(ymin= proportion-sd,ymax= proportion+sd))
  
-  theme(panel.spacing = unit(2, "lines"))
-
-ggsave("Percent_Preffered_Habitat_NAFO.png")
 
 ggplot(percent_good, aes(x = Year, y = proportion)) + 
   geom_line() + facet_wrap(~ZONE) + 
   geom_errorbar(aes(ymin= proportion-sd,ymax= proportion+sd))
 
-ggsave("Percent_Good_Habitat_NAFO.png")
 
 ggplot(percent_pref_temp, aes(x = Year, y = proportion)) + 
   geom_line() + facet_wrap(~ZONE) + 
   geom_errorbar(aes(ymin= proportion-sd,ymax= proportion+sd))
 
-ggsave("Percent_Pref_Temp_DepthNA_NAFO.png")
 
 ggplot(percent_good_temp, aes(x = Year, y = proportion)) + 
   geom_line() + facet_wrap(~ZONE) + 
   geom_errorbar(aes(ymin= proportion-sd,ymax= proportion+sd))
 
-ggsave("Percent_Good_Temp_DepthNA_NAFO.png")
 
 #redo as one faceted table with all 4 habitats in each plot, need to melt data first
 
@@ -190,7 +184,6 @@ ggplot(percent_hab_all, aes(x = Year, y = proportion, colour = Habitat_suitabili
   geom_line() +
   geom_errorbar(aes(ymin= proportion-sd,ymax= proportion+sd))
   
-ggsave("Habitat_Prop_byyear.png")
 
 
   
@@ -210,28 +203,23 @@ filter(stock_hab, Habitat_suitability == "Preffered") %>%
   geom_line() +
   geom_errorbar(aes(ymin= proportion-sd,ymax= proportion+sd))
 
-ggsave("Preffered_bystock_sd.png")
 
 filter(stock_hab, Habitat_suitability == "Good") %>%  
   ggplot(aes(x = Year, y = proportion, colour = Stock)) + 
   geom_line() +
   geom_errorbar(aes(ymin= proportion-sd,ymax= proportion+sd))
 
-ggsave("Good_bystock_sd.png")
 
 filter(stock_hab, Habitat_suitability == "Good_temp") %>%  
   ggplot(aes(x = Year, y = proportion, colour = Stock)) + 
   geom_line() +
   geom_errorbar(aes(ymin= proportion-sd,ymax= proportion+sd))
 
-ggsave("Good_temp_bystock.png")
 
 filter(stock_hab, Habitat_suitability == "Pref_temp") %>%  
   ggplot(aes(x = Year, y = proportion, colour = Stock)) + 
   geom_line() +
   geom_errorbar(aes(ymin= proportion-sd,ymax= proportion+sd))
 
-ggsave("Pref_temp_bystock_sd.png")
 
 
-fwrite(total_hab, file = "Pref_temp_bystock.csv")
