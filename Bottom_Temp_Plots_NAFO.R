@@ -15,7 +15,7 @@ setwd("~/School 2019-2020/Halibut/BIO/Bottom_temp_raw_files")
 
 btmp = list.files(pattern="*.csv") %>% 
   map_df(~fread(.))%>%
-  data.frame()
+  data.frame
 
 
 #Add new column for year using rep() to differentiate between each of the 29 years
