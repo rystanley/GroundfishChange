@@ -41,11 +41,10 @@ for(i in 1:length(btmp_years_list)) #loop the number of years you'd like to crea
     
   }
   
-<<<<<<< HEAD:Convert_mat_csv.R
+
   year_df_list[[i]] = setNames(do.call(rbind.data.frame, Map('c', longitude, latitude, depth, land, month_list[[1]], month_list[[2]], month_list[[3]], month_list[[4]], month_list[[5]], month_list[[6]], month_list[[7]], month_list[[8]], month_list[[9]], month_list[[10]], month_list[[11]], month_list[[12]])),c("Longitude","Latitude", "Depth", "If_land", paste("M", 1:12, sep = ""))) %>% mutate(Annual_AVG = rowMeans(select(.,M1:M12)), Winter_AVG = rowMeans(select(.,M1:M3)), Summer_AVG = rowMeans(select(.,M7:M9)) ) #creates a dataframe using the long, lat, depth, land and months for each year
-=======
+
   year_df_list[[i]] = setNames(do.call(rbind.data.frame, Map('c', longitude, latitude, depth, land, month_list[[1]], month_list[[2]], month_list[[3]], month_list[[4]], month_list[[5]], month_list[[6]], month_list[[7]], month_list[[8]], month_list[[9]], month_list[[10]], month_list[[11]], month_list[[12]])),c("Longitude","Latitude", "Depth", "If_land", paste("BTmp_", 1:12, sep = ""))) %>% mutate(Annual_AVG = rowMeans(select(.,BTmp:BTmp12)), Winter_AVG = rowMeans(select(.,BTmp1:BTmp3)), Spring_AVG = rowMeans(select(.,BTmp4:BTmp6)), Summer_AVG = rowMeans(select(.,BTmp7:BTmp9)), Fall_AVG = rowMeans(select(.,BTmp10:BTmp12))) #creates a dataframe using the long, lat, depth, land and months for each year
->>>>>>> 456836443346ce2333a4da3f06af7a90f807c636:R/Convert_mat_csv.R
 
 #assigns a name for the newly create dataframe based on year (1989+i)
   nam = paste("BTmp_",  i + (data$yr0[1] - 1), sep = "")  
