@@ -1,37 +1,33 @@
-library(data.table)
-library(sp)
-library(sf) 
-library(ggplot2)
-library(here)
-library(tidyverse)
-library(rnaturalearth)
-library(Hmisc)
+#Code to generate maps of bottom temperature
 
+#Load libraries ----
+  library(data.table)
+  library(sp)
+  library(sf) 
+  library(ggplot2)
+  library(tidyverse)
+  library(rnaturalearth)
+  library(Hmisc)
 
-SourceGitFunc <- function("https://raw.githubusercontent.com/rystanley/GroundfishChange/master/R/make_map2.R?token=ANI5XLA5VJXXDUEFIDYEPOK6FR3TK")
-  
-{
-  require(RCurl)
-  
-  script = getURL("https://raw.githubusercontent.com/rystanley/GroundfishChange/master/R/make_map2.R?token=ANI5XLA5VJXXDUEFIDYEPOK6FR3TK", ssl.verifypeer = FALSE)
-  
-  eval(parse(text = script),envir=.GlobalEnv)
-  
-}
+#Source functions ----
+  source("R/make_map2.R")
 
-load("C:/Users/User/Documents/School 2019-2020/Halibut/BIO/BNAM_map.RData")
+#Load data ----
+  load("data/BNAM_map.RData")
 
 
 ## 1990 Bottom Temperature Map ----
 
- map_1990 = select(filter(map_temp, Year == 1990), Longitude, Latitude, Annual_AVG)  #miun = -1, max = 13
+ map_1990 = map_temp%>%
+            filter(Year == 1990)%>%
+            select(Longitude, Latitude, Annual_AVG)  #miun = -1, max = 13
 
-  temp_1990 = make_map(xyz = map_1990, variable = "Temperature") 
+  temp_1990 = make_map(xyz = map_1990, variable = "Temperature",lims=c(-1,5)) 
   
     temp_1990 + theme(legend.position = "right") + ggtitle("Average Bottom Temperature 1990") +
       scale_fill_gradientn(colours=topo.colors(7), breaks=c(0,2,4,6,10),limits=c(-1, 5)) 
     
-    
+
     
   map_2018 =select(filter(map_temp, Year == 2018), Longitude, Latitude, Annual_AVG) 
     
