@@ -18,7 +18,7 @@ rv = rv %>% replace_na(list(Abundance = 0, Kg = 0))
 rv$Abundance = ceiling(rv$Abundance)
 
 ## Temperature distribution curve ----
-rv_temp = rv %>% filter(!is.na(Temp), !is.na(Zone)) %>% mutate(Region = ifelse(grepl("\\b4T\\b", .$Zone), "GSL", "SS"), T_range = cut(.$Temp, breaks = c(seq(from = floor(min(.$Temp)), to = ceiling(max(.$Temp)), by = 1))))
+rv_temp = rv %>% filter(!is.na(Temp), !is.na(Zone)) %>% mutate(Region = ifelse(grepl("\\b4T\\b", .$Zone), "GSL", "SS"), T_range = cut(.$Temp, breaks = c(seq(from = floor(min(.$Temp)), to = ceiling(max(.$Temp)), by = .5))))
 # floor(min(rv$Temp))
 #Expanding by # in abundance for plotting
 obs_hal = rv_temp %>% filter(Presence == "P") %>% uncount(Abundance)
