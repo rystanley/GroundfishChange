@@ -19,7 +19,9 @@ library(ggridges)
     filter(!is.na(ZONE))
 
 ## Bottom Temperature Data Prep ----
-
+  
+  if(!dir.exists("output")){dir.create("output/")} #create a output directory if it doesn't exist
+  
 ##Load RData file of processed data
 load("data/BNAM_Step1.RData")
 
