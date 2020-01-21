@@ -1,7 +1,6 @@
 make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,
                      variable="",trans=NULL,facetorder=NULL,ncol=2,
-                     breaks=c(0.01,0.1,1,10,100),
-                     labels=c(0.01,0.1,1,10,100)){
+                     lims = NULL){
   
   #Specify variables ------------
   
@@ -13,12 +12,9 @@ make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,
   #bathy - logical (default: FALSE) specifying whether you want a bathymetric contour line
   #variable - legend title for "z" variable
   #trans - variable specifying if any transfomration should be applied to the fill scale (default is no transformation (NULL) and the other option is 'log')
-  #buffer - is a buffer (in km - DEFAULT: 100 km) that puts a buffer around forceextent, extent so try to avoid areas devoid of data around the perifery of the plot
   #ncol - is the number of columns  for a facet - default is 2
-  #breaks for the raster colour fill when logged
-  #labels for the raster colour fill breaks when logged (must be semetrical with breaks) 
-  
-  
+  #lims - is a transformation range applied to the data where values above and below the limts are assigned the upper and lower limit values
+ 
   #load required libraries -----------
   
   require(shape)
@@ -51,6 +47,22 @@ make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,
   #Projections ------------
   latlong <- "+proj=longlat +datum=NAD83 +no_defs +ellps=GRS80 +towgs84=0,0,0"
   planar <- "+proj=utm +zone=20 +datum=NAD83 +units=km +no_defs +ellps=GRS80 +towgs84=0,0,0"
+  
+  #Transformation --------------
+  
+  names(xyz)[3] <- "z" # just to standardize the code. XYZ from the function variable will inherit the workspace names. 
+  
+  if(!is.null(lims)){
+    
+    rng <- round(range(xyz[,3]),2)
+    
+    #Message stating what is happening
+    writeLines(paste0("Transforming data range from (",rng[1],",",rng[2],") to (",lims[1],",",lims[2],")"))
+    
+    xyz <- xyz%>%mutate(z = ifelse(z<lims[1],lims[1],
+                         ifelse(z>lims[2],lims[2],z)))
+    
+  }
   
   # Make raster grid ----------------
   
@@ -107,13 +119,7 @@ make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,
   
   #get mapping baselayers ----------
   
-  usa <- map_data("state")%>%
-    subset(.,region %in% c("maine","new hampshire",
-                           "massachusetts","connecticut",
-                           "rhode island","vermont"))
-  canada <- map_data("worldHires", "Canada")
-  
-  Canada <- ne_states(country = "Canada",returnclass = "sf")%>%
+   Canada <- ne_states(country = "Canada",returnclass = "sf")%>%
     st_transform(latlong)%>%
     filter(name %in% c("Nunavut","Ontario","Québec","Newfoundland and Labrador",
                        "Nova Scotia","Prince Edward Island","New Brunswick"))%>%
@@ -130,7 +136,7 @@ make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,
   
   #Make the plot ----------
   p1 <- ggplot() +
-    geom_sf(data=ras,aes(col=MAP))+
+    geom_sf(data=ras,aes(fill=MAP),colour=NA)+
     geom_sf(data = Canada) + 
     geom_sf(data = USA) + 
     coord_sf(xlim = Long.lim,  ylim = Lat.lim, expand=FALSE)+
@@ -150,7 +156,7 @@ make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,
   #apply colour scales to plot
   #regular scale
   if(is.null(trans)){
-    p1 <- p1+scale_colour_gradientn(name=variable,
+    p1 <- p1+scale_fill_gradientn(name=variable,
                                   colours=colorRampPalette(rev(c("red","yellow","springgreen","royalblue")))(50),
                                   na.value="white")}
   #log transformed scale
