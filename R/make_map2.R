@@ -1,5 +1,6 @@
 make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,
-                     variable="",trans=NULL,facetorder=NULL,ncol=2,
+                     variable="",trans=NULL,facetorder=NULL,ncol=2,buffer=NULL,
+                     long.lim = NULL,lat.lim=NULL,
                      lims = NULL){
   
   #Specify variables ------------
@@ -13,6 +14,9 @@ make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,
   #variable - legend title for "z" variable
   #trans - variable specifying if any transfomration should be applied to the fill scale (default is no transformation (NULL) and the other option is 'log')
   #ncol - is the number of columns  for a facet - default is 2
+  #buffer - this is a small buffer that can be used to trim out odd data along the borders of the plot. Units are decimal degrees.
+  #long.lim - forced longitude extent
+  #lat.lim - forced latitude extent
   #lims - is a transformation range applied to the data where values above and below the limts are assigned the upper and lower limit values
  
   #load required libraries -----------
@@ -54,13 +58,17 @@ make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,
   
   if(!is.null(lims)){
     
-    rng <- round(range(xyz[,3]),2)
+    if(lims[1]>min(xyz[,3],na.rm=T) | lims[2]<max(xyz[,3],na.rm=T)){
     
-    #Message stating what is happening
-    writeLines(paste0("Transforming data range from (",rng[1],",",rng[2],") to (",lims[1],",",lims[2],")"))
+      rng <- round(range(xyz[,3]),2)
+      
+      #Message stating what is happening
+      writeLines(paste0("Transforming data range from (",rng[1],",",rng[2],") to (",lims[1],",",lims[2],")"))
+      
+      xyz <- xyz%>%mutate(z = ifelse(z<lims[1],lims[1],
+                           ifelse(z>lims[2],lims[2],z)))
     
-    xyz <- xyz%>%mutate(z = ifelse(z<lims[1],lims[1],
-                         ifelse(z>lims[2],lims[2],z)))
+    }
     
   }
   
@@ -101,8 +109,18 @@ make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,
     st_as_sf(coords=c("Longitude","Latitude"),crs=latlong)%>%
     raster::extent(.)
   
-  Long.lim  <-  c(rextent[1], rextent[2])
-  Lat.lim <-  c(rextent[3], rextent[4])
+  if(!is.null(long.lim)){Long.lim=long.lim}else{Long.lim  <-  c(rextent[1], rextent[2])}
+  if(!is.null(lat.lim)){Long.lim=lat.lim}else{Lat.lim <-  c(rextent[3], rextent[4])}
+
+  #if buffer is required  
+    if(!is.null(buffer)){
+      
+      Long.lim[1] <- Long.lim[1]+buffer
+      Long.lim[2] <- Long.lim[2]-buffer
+      Lat.lim[1] <- Lat.lim[1]+buffer
+      Lat.lim[2] <- Lat.lim[2]-buffer
+
+    }
   
   #Download bathymetry -------------
   
@@ -153,16 +171,16 @@ make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,
   #apply bathymetric contour (hard coded at 200 m for the ~shelf break)   
   if(bathy){p1 <- p1+geom_contour(data=bathy,aes(x=x,y=y,z=z),breaks=c(-200),lwd=0.05,colour="grey20")}
   
-  #apply colour scales to plot
-  #regular scale
-  if(is.null(trans)){
-    p1 <- p1+scale_fill_gradientn(name=variable,
-                                  colours=colorRampPalette(rev(c("red","yellow","springgreen","royalblue")))(50),
-                                  na.value="white")}
-  #log transformed scale
-  if(!is.null(trans)){
-    p1 <- p1+scale_colour_gradientn(name=variable,colours=colorRampPalette(rev(c("red","yellow","springgreen","royalblue")))(50),trans="log10",
-                                  breaks=breaks,labels=labels,na.value="white")}
+  # #apply colour scales to plot
+  # #regular scale
+  # if(is.null(trans)){
+  #   p1 <- p1+scale_fill_gradientn(name=variable,
+  #                                 colours=colorRampPalette(rev(c("red","yellow","springgreen","royalblue")))(50),
+  #                                 na.value="white")}
+  # #log transformed scale
+  # if(!is.null(trans)){
+  #   p1 <- p1+scale_colour_gradientn(name=variable,colours=colorRampPalette(rev(c("red","yellow","springgreen","royalblue")))(50),trans="log10",
+  #                                 breaks=breaks,labels=labels,na.value="white")}
   
   #Apply facet
   if(!is.null(facet)){p1=p1+facet_wrap(~GROUP,ncol=ncol)} 
