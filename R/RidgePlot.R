@@ -71,7 +71,7 @@ p1 <- ggplot(filter(hab,Year%in%c(1993,2018),
   labs(x=expression(paste("Temperature ",degree,"C",sep="")))+
   facet_grid(NAFO~Year);p1
 
-ggsave("NAFO-Year-Ridges-Example.png",p1,dpi=600)
+ggsave("output/NAFO-Year-Ridges-Example.png",p1,dpi=600)
 
 #Just summer
 p2 <- ggplot(filter(hab,Year%in%c(1993,2018),
