@@ -1,0 +1,2 @@
+This file is a placeholder so that git will keep the data/ folder in the project repository. Since we will not track .RData files (specified in the .gitignore files) this will be the only 
+file in the data file that tracks to github. Note that Andrew has created .RData files that have data to drive each funcition in the code folder. 
