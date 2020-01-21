@@ -3,3 +3,4 @@
 *.RData
 .Ruserdata
 marmap_coord*.csv
+data/Divisions*
