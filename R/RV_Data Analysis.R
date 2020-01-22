@@ -6,7 +6,7 @@ library(ggplot2) #plotting
 library(data.table) #faster processing
 
 
-rv = fread("C:/Users/User/Documents/School 2019-2020/Halibut/Halibut_2018_RV.csv")
+rv = fread("data/Halibut_2018_RV.csv")
 
 #Select columns that will be used
 rv = rv %>% select(LATITUDE, LONGITUDE, YEAR, SEASON, NAME, DMAX, BOTTOM_TEMPERATURE, BOTTOM_SALINITY, TOTALNUMBERSTANDARDIZED, TOTALWEIGHTSTANDARDIZED_KG, PRESENCE) %>% rename(Zone = NAME, Depth = DMAX, Temp = BOTTOM_TEMPERATURE, Year = YEAR, Season = SEASON, Salinity = BOTTOM_SALINITY, Abundance = TOTALNUMBERSTANDARDIZED, Kg = TOTALWEIGHTSTANDARDIZED_KG, Presence = PRESENCE)
@@ -15,10 +15,11 @@ rv = rv %>% select(LATITUDE, LONGITUDE, YEAR, SEASON, NAME, DMAX, BOTTOM_TEMPERA
 rv = rv %>% replace_na(list(Abundance = 0, Kg = 0))
 
 #Rounding up for abundance in order to plot
-rv$Abundance = ceiling(rv$Abundance)
+rv_round = rv
+rv_round$Abundance = ceiling(rv_round$Abundance)
 
 ## Temperature distribution curve ----
-rv_temp = rv %>% filter(!is.na(Temp), !is.na(Zone)) %>% mutate(Region = ifelse(grepl("\\b4T\\b", .$Zone), "GSL", "SS"), T_range = cut(.$Temp, breaks = c(seq(from = floor(min(.$Temp)), to = ceiling(max(.$Temp)), by = .5))))
+rv_temp = rv_round %>% filter(!is.na(Temp), !is.na(Zone)) %>% mutate(Region = ifelse(grepl("\\b4T\\b", .$Zone), "GSL", "SS"), T_range = cut(.$Temp, breaks = c(seq(from = floor(min(.$Temp)), to = ceiling(max(.$Temp)), by = .5))))
 # floor(min(rv$Temp))
 #Expanding by # in abundance for plotting
 obs_hal = rv_temp %>% filter(Presence == "P") %>% uncount(Abundance)
@@ -47,7 +48,7 @@ ggplot(obs_hal, aes(x = T_range)) + geom_histogram(stat = "count") +
 
 ## Depth Distribution Curve
 
-rv_depth = rv %>% filter(!is.na(Depth)) %>% mutate(D_range = cut(.$Depth, breaks = c(seq(from = floor(min(.$Depth)), to = ceiling(max(.$Depth))-660, by = 10))))
+rv_depth = rv_round %>% filter(!is.na(Depth)) %>% mutate(D_range = cut(.$Depth, breaks = c(seq(from = floor(min(.$Depth)), to = ceiling(max(.$Depth))-660, by = 10))))
 
 obs_depth_hal = rv_depth %>% filter(Presence == "P") %>% uncount(Abundance)
 
@@ -73,9 +74,9 @@ ggplot(obs_depth_hal, aes(x = D_range)) + geom_histogram(stat = "count") +
 ## ECDF plots ----
  
 # Survey area
-surv_ecdf = rv %>% filter(!is.na(Temp))
+surv_ecdf = rv_round %>% filter(!is.na(Temp))
 #Abundance
-abun_ecdf = rv %>% filter(Presence == "P", !is.na(Temp)) %>% uncount(Abundance)
+abun_ecdf = rv_round %>% filter(Presence == "P", !is.na(Temp)) %>% uncount(Abundance)
 
 
 ## ECDF Temp  
@@ -135,3 +136,39 @@ ggplot() + stat_ecdf(data = abun_ecdf, mapping = aes(Salinity, colour = Presence
                                                                               panel.grid.minor = element_blank(),
                                                                               panel.background = element_blank()) +
   ggtitle("Salinity Surveyed vs Presence of Halibut")
+
+
+## Abundance Plots ----
+
+bio_abun = rv %>% group_by(Year, Season) %>% summarise(Abundance = sum(Abundance), Kg = sum(Kg))
+
+
+ggplot(bio_abun, aes(x = Year, y = Abundance, colour = Season)) + geom_point() +
+  geom_smooth() + theme(axis.line = element_line(colour = "black"),
+                        panel.grid.major = element_blank(),
+                        panel.grid.minor = element_blank(),
+                        panel.background = element_blank())
+
+ggplot(bio_abun, aes(x = Year, y = Abundance)) + geom_point() +
+  geom_smooth() + theme(axis.line = element_line(colour = "black"),
+                        panel.grid.major = element_blank(),
+                        panel.grid.minor = element_blank(),
+                        panel.background = element_blank())
+
+
+## Biomass Plots ----
+
+ggplot(bio_abun, aes(x = Year, y = Kg, colour = Season)) + geom_point() +
+  geom_smooth() + theme(axis.line = element_line(colour = "black"),
+                        panel.grid.major = element_blank(),
+                        panel.grid.minor = element_blank(),
+                        panel.background = element_blank())
+
+ggplot(bio_abun, aes(x = Year, y = Kg)) + geom_point() +
+  geom_smooth() + theme(axis.line = element_line(colour = "black"),
+                        panel.grid.major = element_blank(),
+                        panel.grid.minor = element_blank(),
+                        panel.background = element_blank())
+
+
+
