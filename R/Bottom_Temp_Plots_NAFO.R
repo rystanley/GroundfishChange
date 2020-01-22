@@ -8,11 +8,11 @@ library(rnaturalearth)
 library(Hmisc)
 
 #Load Data
-load("C:/Users/User/Documents/School 2019-2020/Halibut/BIO/BNAM_hab.RData")
+load("data/BNAM_temp.RData")#the Rdata file here needs to be fixed since it doesn't contain zone anymore
 
 ## Plotting Average Bottom Temperature ----
 
-avg_btmp = avg_btmp %>% select("Year", "ZONE", "Winter_AVG", "Summer_AVG", "Annual_AVG") %>% group_by(Year, ZONE) %>% 
+avg_btmp = hab %>% select("Year", "ZONE", "Winter_AVG", "Summer_AVG", "Annual_AVG") %>% group_by(Year, ZONE) %>% 
   summarise_all(funs(mean))
 
 ###Total Bottom Temperature trend by NAFO zone for each season
@@ -59,7 +59,7 @@ ggplot(Avg_btm_temp_2 %>% filter(Season == 'Summer_AVG'), aes(x = Year, y = Temp
 
 
 ## Habitat Plots ----
-load("C:/Users/User/Documents/School 2019-2020/Halibut/BIO/BNAM_hab.RData")
+load("data/BNAM_hab.RData")
 
 ggplot(filter(prop_hab, Habitat == "Preffered"), aes(x = Year, y = Proportion)) + 
   geom_line() + facet_wrap(~ZONE, scales = "free") +
@@ -83,11 +83,11 @@ ggplot(filter(prop_hab, Habitat == "Good"), aes(x = Year, y = Proportion)) +
 
 ## GDD Plots ----
 
-load("C:/Users/User/Documents/School 2019-2020/Halibut/BIO/GDD.RData")
+load("data/GDD.RData")
 #Plot of the average GDD for each NAFO zone by season
 
 # GDD Estimate 1 (Scaled mean GDD of temps >3   x   n(temps > 3)   /   total obs in zone)
-ggplot(gdd_scaled, aes(x = Year, y = Annual_GDD)) + 
+ggplot(GDD, aes(x = Year, y = sGDD)) + 
   geom_line() + facet_wrap(~ZONE, scales = "free") + 
   geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
                                                   panel.grid.major = element_blank(),
@@ -97,7 +97,7 @@ ggplot(gdd_scaled, aes(x = Year, y = Annual_GDD)) +
 
 
 # GDD Estimate 2 Plot (Average GDD of all depth between 25-200)
-ggplot(gdd_overall, aes(x = Year, y = mGDD)) + 
+ggplot(GDD, aes(x = Year, y = mGDD)) + 
   geom_line() + facet_wrap(~ZONE, scales = "free") + 
   geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
                                                   panel.grid.major = element_blank(),
@@ -107,7 +107,7 @@ ggplot(gdd_overall, aes(x = Year, y = mGDD)) +
 
 
 # GDD Estimate 3 Plot (average number of days > 3, within the depth range)  
-ggplot(gdd_E3, aes(x = Year, y = Avg_days)) + 
+ggplot(GDD, aes(x = Year, y = Avg_days)) + 
   geom_line() + facet_wrap(~ZONE, scales = "free") + 
   geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
                                                   panel.grid.major = element_blank(),
