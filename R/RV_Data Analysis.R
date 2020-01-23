@@ -81,7 +81,7 @@ abun_depth <- rv %>% filter(Presence == "P", !is.na(Depth))
 ## Abundance
 p1 = ggplot(filter(abun_ecdf, Season == "SUMMER"), 
        aes(x=Temp,y= 0, fill = stat(x))) + 
-  geom_density_ridges_gradient() +
+  geom_density_ridges_gradient(scale = 1) +
   scale_x_continuous(breaks = seq(-2, 17, by = 1), limits = c(-2,15)) + 
   scale_fill_viridis_c(name=expression(paste("Temperature ",degree,"C",sep="")),option="C") +
   theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
@@ -105,7 +105,7 @@ ggsave("output/Abundance-geom_density.png",p2,dpi=600)
 
 p3 = ggplot(filter(abun_depth, Season == "SUMMER", !is.na(Depth)), 
             aes(x=Depth, y=0, fill = stat(x)))+ 
-  geom_density_ridges_gradient()+
+  geom_density_ridges_gradient(scale = 1)+
   scale_x_reverse(breaks = seq(0, 1000, by = 50))+
   coord_flip()+
   scale_fill_viridis_c(name=expression(paste("Depth ","(M)",sep="")),option="D")+
