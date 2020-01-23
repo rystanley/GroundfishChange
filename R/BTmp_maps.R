@@ -64,3 +64,33 @@ for(y in Years){
   }#end of Seasons loop
 }#end of Years loop
 
+
+
+
+## Single Averaged Map over all years
+single_map <- map_temp%>% 
+  select(Longitude, Latitude, Annual_AVG)%>%
+  group_by(Latitude, Longitude)%>%
+  summarise(mTemp = mean(Annual_AVG))
+
+
+## @Ryan, for some reason this code doesn't work when I try to assign it (m1 <- make_map(...) and print it (;m1) any idea why?
+#Next steps would be to lay the NAFO zones with names over this map
+make_map(single_map,long.lim = c(-72.99797, -46))+ #get rid of non-halibut area on the plot
+  scale_fill_viridis_c(limits=c(filter(lims,Season==Seasons[1])%>%pull(min),
+                                filter(lims,Season==Seasons[1])%>%pull(max)),
+                       option = "C",
+                       name=expression(paste("Temperature ",degree,"C",sep="")))+
+  ggtitle(paste0("Average ",gsub("_AVG","",Seasons[1])," Temperature "))+
+  theme(legend.position = "right")
+
+ggsave("Overall_average_temp",m1,dpi=600,width=8,height=6,units="in")
+
+
+
+
+
+
+
+
+
