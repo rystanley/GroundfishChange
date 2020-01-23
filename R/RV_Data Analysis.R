@@ -105,15 +105,15 @@ ggsave("output/Abundance-geom_density.png",p2,dpi=600)
 
 p3 = ggplot(filter(abun_depth, Season == "SUMMER", !is.na(Depth)), 
             aes(x=Depth, y=0, fill = stat(x)))+ 
-  geom_density_ridges_gradient(scale = 1)+
-  scale_x_reverse(breaks = seq(0, 1000, by = 50))+
+  geom_density_ridges_gradient(scale = 1, rel_min_height = 0.0001)+
+  scale_x_reverse(breaks = seq(0, 550, by = 50))+
   coord_flip()+
-  scale_fill_viridis_c(name=expression(paste("Depth ","(M)",sep="")),option="D")+
+  scale_fill_viridis_c(name=expression(paste("Depth ","(M)",sep="")),option="E")+
   theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), panel.background = element_blank()) +
   ggtitle("Presence of Halibut by Depth");p3
 
-ggsave("output/Abundance-depth-viridis.png",p1,dpi=600)
+ggsave("output/Abundance-depth-viridis_3zeros.png",p3,dpi=600)
 
 
 
