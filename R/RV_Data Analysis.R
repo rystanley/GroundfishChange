@@ -43,8 +43,7 @@ ggplot(obs_hal, aes(x = T_range)) + geom_histogram(stat = "count") +
   ggtitle("Abundance of Halibut by Temperature") # outer = 0-12 , middle = 3-10, inner 4-9, narrow inner = 5-8
 #create binned barplot for all areas sampled present or not
 
-#Confidence Interval for Mean temperature of abundance
-#6.486 + c(-1,1)*1.959964*(4.784259/sqrt(6136))
+
 
 ## Depth Distribution Curve
 
@@ -77,7 +76,7 @@ ggplot(obs_depth_hal, aes(x = D_range)) + geom_histogram(stat = "count") +
 surv_ecdf = rv_round %>% filter(!is.na(Temp))
 #Abundance
 abun_ecdf = rv_round %>% filter(Presence == "P", !is.na(Temp)) %>% uncount(Abundance)
-
+abun_depth <- rv %>% filter(Presence == "P", !is.na(Depth))
 
 ## Abundance
 p1 = ggplot(filter(abun_ecdf, Season == "SUMMER"), 
@@ -87,9 +86,9 @@ p1 = ggplot(filter(abun_ecdf, Season == "SUMMER"),
   scale_fill_viridis_c(name=expression(paste("Temperature ",degree,"C",sep="")),option="C") +
   theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), panel.background = element_blank()) +
-  ggtitle("Temperature Surveyed vs Presence of Halibut");p1
+  ggtitle("Presence of Halibut by Temperature");p1
 
-ggsave("output/Abundance-ridges.png",p1,dpi=600)
+ggsave("output/Abundance-temp.png",p1,dpi=600)
 
 
 
@@ -98,9 +97,25 @@ p2 <- ggplot() + geom_density(filter(abun_ecdf, Season == "SUMMER"), mapping = a
   scale_fill_viridis_c(name=expression(paste("Temperature ",degree,"C",sep="")),option="C") +
   theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), panel.background = element_blank()) +
-  ggtitle("Temperature Surveyed vs Presence of Halibut");p2
+  ggtitle("Presence of Halibut by Temperature");p2
 
 ggsave("output/Abundance-geom_density.png",p2,dpi=600)
+
+## Depth 
+
+p3 = ggplot(filter(abun_depth, Season == "SUMMER", !is.na(Depth)), 
+            aes(x=Depth, y=0, fill = stat(x)))+ 
+  geom_density_ridges_gradient()+
+  scale_x_reverse(breaks = seq(0, 1000, by = 50))+
+  coord_flip()+
+  scale_fill_viridis_c(name=expression(paste("Depth ","(M)",sep="")),option="D")+
+  theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), panel.background = element_blank()) +
+  ggtitle("Presence of Halibut by Depth");p3
+
+ggsave("output/Abundance-depth-viridis.png",p1,dpi=600)
+
+
 
 ## ECDF Temp  
 ggplot() + stat_ecdf(data = abun_ecdf, mapping = aes(Temp, colour = Presence)) + 
