@@ -79,9 +79,32 @@ surv_ecdf = rv_round %>% filter(!is.na(Temp))
 abun_ecdf = rv_round %>% filter(Presence == "P", !is.na(Temp)) %>% uncount(Abundance)
 
 
+## Abundance
+p1 = ggplot(filter(abun_ecdf, Season == "SUMMER"), 
+       aes(x=Temp,y= 0, fill = stat(x))) + 
+  geom_density_ridges_gradient() +
+  scale_x_continuous(breaks = seq(-2, 17, by = 1), limits = c(-2,15)) + 
+  scale_fill_viridis_c(name=expression(paste("Temperature ",degree,"C",sep="")),option="C") +
+  theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), panel.background = element_blank()) +
+  ggtitle("Temperature Surveyed vs Presence of Halibut");p1
+
+ggsave("output/Abundance-ridges.png",p1,dpi=600)
+
+
+
+p2 <- ggplot() + geom_density(filter(abun_ecdf, Season == "SUMMER"), mapping = aes(x=Temp)) +
+  scale_x_continuous(breaks = seq(-2, 17, by = 1), limits = c(-2,15)) + 
+  scale_fill_viridis_c(name=expression(paste("Temperature ",degree,"C",sep="")),option="C") +
+  theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), panel.background = element_blank()) +
+  ggtitle("Temperature Surveyed vs Presence of Halibut");p2
+
+ggsave("output/Abundance-geom_density.png",p2,dpi=600)
+
 ## ECDF Temp  
-ggplot() + stat_ecdf(data = abun_ecdf, mapping = aes(Temp, colour = Presence), geom = "step", pad = FALSE) + 
-  stat_ecdf(data = sT_ecdf, mapping = aes(Temp), geom = "step", pad = FALSE) + 
+ggplot() + stat_ecdf(data = abun_ecdf, mapping = aes(Temp, colour = Presence)) + 
+  stat_ecdf(data = surv_ecdf, mapping = aes(Temp), geom = "step", pad = FALSE) + 
   scale_x_continuous(breaks = seq(-2, 17, by = 1), limits = c(-2,15)) + theme(axis.line = element_line(colour = "black"),
                                                            panel.grid.major = element_blank(),
                                                            panel.grid.minor = element_blank(),
