@@ -85,6 +85,26 @@ ggplot(filter(prop_hab, Habitat == "Preffered"), aes(x = Year, y = Proportion)) 
   ggtitle("Proportion of Preffered Habitat")
 
 
+## Plot to transfer
+prop_hab$Stock =  ifelse(grepl("4T|4S|4R", prop_hab$ZONE), "GSL",
+                         ifelse(grepl("4X|4W|4Vs|4Vn", prop_hab$ZONE), "SS", 
+                                ifelse(grepl("3Pn|3Ps|3O|3N", prop_hab$ZONE), "NF", NA)))
+
+
+ggplot(filter(prop_hab, Habitat == "Preffered", !is.na(Stock)), 
+       aes(x = Year, y = Proportion,  colour = ZONE))+ 
+  geom_line()+ 
+  geom_smooth(method = "lm", aes(colour = ZONE))+
+  facet_wrap(~Stock)+
+  theme_bw()+
+  theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), panel.background = element_blank())+
+  ggtitle("Preffered Habitat")
+
+ggsave("output/Summer_average_temp-groups.png",p3,dpi=600,width=8,height=6,units="in")
+
+####
+
 ggplot(filter(prop_hab, Habitat == "Good"), aes(x = Year, y = Proportion)) + 
   geom_line() + facet_wrap(~ZONE, scales = "free") +
   geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
@@ -109,6 +129,22 @@ ggplot(GDD, aes(x = Year, y = sGDD)) +
                                                   panel.grid.minor = element_blank(),
                                                   panel.background = element_blank()) +
   ggtitle("Scaled Annual Average GDD per Grid Cell")
+
+## Second plot to transfer over
+
+GDD$Stock =  ifelse(grepl("4T|4S|4R", GDD$ZONE), "GSL",
+                    ifelse(grepl("4X|4W|4Vs|4Vn", GDD$ZONE), "SS", 
+                           ifelse(grepl("3Pn|3Ps|3O|3N", GDD$ZONE), "NF", NA)))
+
+ggplot(filter(GDD, !is.na(Stock)), aes(x = Year, y = sGDD, colour = ZONE)) + 
+  geom_line() + facet_wrap(~Stock) + 
+  geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
+                                                  panel.grid.major = element_blank(),
+                                                  panel.grid.minor = element_blank(),
+                                                  panel.background = element_blank()) +
+  ggtitle("Scaled Annual Average GDD per Grid Cell")
+
+#########
 
 
 # GDD Estimate 2 Plot (Average GDD of all depth between 25-200)
