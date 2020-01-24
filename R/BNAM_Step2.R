@@ -22,12 +22,17 @@ library(Hmisc)
   ##Load RData file of processed data
     load("data/BNAM_Step1.RData")
 
-  ##Save Average Seasonal Data 
-    btmp %>% 
-         select(Longitude, Latitude, Depth, Winter_AVG, Summer_AVG, Annual_AVG, Year)%>%
-         save(.,file = "BNAM_temp.RData") # can put it right in the pipe!
-
+     # can put it right in the pipe!
+    ##Save Average Seasonal Data
+    temp <- btmp %>%
+      select(Longitude, Latitude, Depth, Winter_AVG, Summer_AVG, Annual_AVG, Year)%>%
+      st_as_sf(coords=c("Longitude","Latitude"),crs=latlong)%>%
+      st_join(.,NAFO,join=st_intersects)%>%
+      mutate(ZONE=as.character(ZONE))%>%  
+      st_set_geometry(NULL)%>%
+      filter(grepl("[34]", ZONE))
  
+  save(temp, file = "data/BNAM_T.RData") #save didn't work when I piped it
 ## Habitat Proportion Prep ----
     #Ryan edit - Put this all in pipe and pre-defined the limits. THis way you can more quickly
     #play with the limits and don't have to go through the mess of code to do it. 
