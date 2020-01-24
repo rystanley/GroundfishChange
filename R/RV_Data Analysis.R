@@ -209,4 +209,20 @@ ggplot(bio_abun, aes(x = Year, y = Kg)) + geom_point() +
                         panel.background = element_blank())
 
 
+## Biomass vs GDD ----
 
+#will probably have to create a data frame in GDD file for total GDD in
+total_gdd = GDD %>% filter(grepl("4T|4S|4R", GDD$ZONE))%>% 
+  group_by(Year)%>% 
+  summarise(Tgdd = sum(sGDD))
+
+bio_gdd = merge(bio_abun %>% filter(Season == "SUMMER") %>% select(Year, Kg),total_gdd, by = "Year")
+
+
+#Try this again with the summer GDD of SS
+#Make sure the total GDD in groups (SS, GSL or NF) are divided (or scaled) by the number of points in all the NAFO zones associated with them
+ggplot(bio_gdd, aes(x = Tgdd, y = Kg)) + geom_point() +
+  geom_smooth(method = "lm") + theme(axis.line = element_line(colour = "black"),
+                                     panel.grid.major = element_blank(),
+                                     panel.grid.minor = element_blank(),
+                                     panel.background = element_blank())
