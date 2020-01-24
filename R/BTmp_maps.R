@@ -84,7 +84,7 @@ make_map(single_map,long.lim = c(-72.99797, -46))+ #get rid of non-halibut area 
   ggtitle(paste0("Average ",gsub("_AVG","",Seasons[1])," Temperature "))+
   theme(legend.position = "right")
 
-ggsave("Overall_average_temp",m1,dpi=600,width=8,height=6,units="in")
+ggsave("output/Overall_average_temp.png",m1,dpi=600,width=8,height=6,units="in")
 
 
 

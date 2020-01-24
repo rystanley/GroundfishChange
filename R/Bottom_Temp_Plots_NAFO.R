@@ -8,17 +8,32 @@ library(rnaturalearth)
 library(Hmisc)
 
 #Load Data
-load("data/BNAM_temp.RData")#the Rdata file here needs to be fixed since it doesn't contain zone anymore
+load("data/BNAM_T.RData")#the Rdata file here needs to be fixed since it doesn't contain zone anymore
 
 ## Plotting Average Bottom Temperature ----
 
-avg_btmp = hab %>% select("Year", "ZONE", "Winter_AVG", "Summer_AVG", "Annual_AVG") %>% group_by(Year, ZONE) %>% 
-  summarise_all(funs(mean))
+avg_btmp = temp %>% select("Year", "ZONE", "Winter_AVG", "Summer_AVG", "Annual_AVG") %>% group_by(Year, ZONE) %>% 
+  summarise_all(list(mean))
 
 ###Total Bottom Temperature trend by NAFO zone for each season
 #Melting data into long format for implementing season as group
 Avg_btm_temp_2 = melt.data.table(as.data.table(avg_btmp), id.vars = c("Year","ZONE")) %>% 
   rename(Season = variable, Temperature = value) 
+
+### THIS IS A FINAL PLOT
+  p1 <- ggplot(Avg_btm_temp_2 %>% filter(Season == "Summer_AVG"), 
+         aes(x = Year, y = Temperature,  colour = ZONE))+ 
+    geom_line()+ 
+    geom_smooth(method = "lm", aes(colour = ZONE))+
+    theme_bw()+
+    theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(), panel.background = element_blank())+
+    ggtitle("Summer Average Temperature");p1
+
+ggsave("output/Summer_average_temp.png",p1,dpi=600,width=8,height=6,units="in")
+
+
+
 
 
 
@@ -47,7 +62,7 @@ ggplot(Avg_btm_temp_2 %>% filter(Season == 'Winter_AVG'), aes(x = Year, y = Temp
   ggtitle("Winter Avereage Temperature")
 
 
-ggplot(Avg_btm_temp_2 %>% filter(Season == 'Summer_AVG'), aes(x = Year, y = Temperature)) + 
+s1 <- ggplot(Avg_btm_temp_2 %>% filter(Season == 'Summer_AVG'), aes(x = Year, y = Temperature)) + 
   geom_line() + facet_wrap(~ZONE, scales = "free") + 
   geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
                                                   panel.grid.major = element_blank(),
@@ -55,7 +70,7 @@ ggplot(Avg_btm_temp_2 %>% filter(Season == 'Summer_AVG'), aes(x = Year, y = Temp
                                                   panel.background = element_blank()) +
   ggtitle("Summer Avereage Temperature")
 
-
+ggsave("output/Summer_average_temp-zone.png",s1,dpi=600,width=8,height=6,units="in")
 
 
 ## Habitat Plots ----
@@ -120,8 +135,9 @@ ggplot(GDD, aes(x = Year, y = Avg_days)) +
 
 ##########Stocks###########
 #i do not know why this code below doesn't work here, yet it worked for dataframe percent_hab below
-avg_btmp = avg_btmp %>% mutate(Stock = ifelse(grepl("4T|4S|4R", avg_btmp$ZONE), "GSL",
-                                                      ifelse(grepl("4X|4W|4Vs|3Pn|3Ps|3O|3N", avg_btmp$ZONE), "SS_NF", "NA")))
+avg_btmp = Avg_btm_temp_2 %>% mutate(Stock = ifelse(grepl("4T|4S|4R", Avg_btm_temp_2$ZONE), "GSL",
+                                                      ifelse(grepl("4X|4W|4Vs|4Vn", Avg_btm_temp_2$ZONE), "SS", 
+                                                             ifelse(grepl("3Pn|3Ps|3O|3N", Avg_btm_temp_2$ZONE), "NF", NA))))
 
 #dividing data into two stocks using NAFo zones
 stock_hab_prop = percent_hab %>% mutate(Stock = ifelse(grepl("4T|4S|4R", percent_hab$ZONE), "GSL", 
@@ -137,25 +153,19 @@ stock_temp = merge(avg_btmp, stock_hab_prop[,c(1,3,6)]) %>% unique() %>% filter(
 ggplot(stock_temp, aes(x = Year, y = Ann_AVG, colour = Stock)) + 
   geom_line() + geom_smooth(method = "lm")
 
-#create ggplot by stocks with and without error bars
-#you can save the figures without error bars if youd like too
-filter(stock_hab, Habitat_suitability == "Preffered") %>%  
-  ggplot(aes(x = Year, y = proportion, colour = Stock)) + 
-  geom_line() +
-  geom_errorbar(aes(ymin= proportion-sd,ymax= proportion+sd))
 
 
+p2 <- ggplot(avg_btmp %>% filter(Season == "Summer_AVG", !is.na(Stock)), 
+             aes(x = Year, y = Temperature,  colour = ZONE))+ 
+  geom_line()+ 
+  geom_smooth(method = "lm", aes(colour = ZONE))+
+  facet_wrap(~Stock)+
+  theme_bw()+
+  theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), panel.background = element_blank())+
+  ggtitle("Summer Average Temperature");p2
 
-filter(stock_hab, Habitat_suitability == "Good") %>%  
-  ggplot(aes(x = Year, y = proportion, colour = Stock)) + 
-  geom_line() +
-  geom_errorbar(aes(ymin= proportion-sd,ymax= proportion+sd))
-
-
-
-
-
-
+ggsave("output/Summer_average_temp-groups.png",p2,dpi=600,width=8,height=6,units="in")
 
 
 
