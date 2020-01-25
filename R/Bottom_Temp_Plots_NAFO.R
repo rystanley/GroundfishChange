@@ -6,6 +6,8 @@ library(here)
 library(tidyverse)
 library(rnaturalearth)
 library(Hmisc)
+library(viridis)
+
 
 #Load Data
 load("data/BNAM_T.RData")#the Rdata file here needs to be fixed since it doesn't contain zone anymore
@@ -85,23 +87,28 @@ ggplot(filter(prop_hab, Habitat == "Preffered"), aes(x = Year, y = Proportion)) 
   ggtitle("Proportion of Preffered Habitat")
 
 
-## Plot to transfer
+## Plot for poster pref hab
 prop_hab$Stock =  ifelse(grepl("4T|4S|4R", prop_hab$ZONE), "GSL",
                          ifelse(grepl("4X|4W|4Vs|4Vn", prop_hab$ZONE), "SS", 
-                                ifelse(grepl("3Pn|3Ps|3O|3N", prop_hab$ZONE), "NF", NA)))
+                                ifelse(grepl("3Pn|3Ps|3O|3N|3L|3M|3K", prop_hab$ZONE), "NF", NA)))
 
 
-ggplot(filter(prop_hab, Habitat == "Preffered", !is.na(Stock)), 
+prop_hab$Stock <- factor(prop_hab$Stock, levels=c("SS", "GSL", "NF"))
+
+p3 <- ggplot(filter(prop_hab, Habitat == "Preffered", !is.na(Stock)), 
        aes(x = Year, y = Proportion,  colour = ZONE))+ 
   geom_line()+ 
-  geom_smooth(method = "lm", aes(colour = ZONE))+
+  geom_smooth(method = "lm", aes(colour = ZONE), se = FALSE)+
   facet_wrap(~Stock)+
+  scale_colour_viridis(discrete = TRUE, option = "D")+ 
   theme_bw()+
   theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(), panel.background = element_blank())+
-  ggtitle("Preffered Habitat")
+        panel.grid.minor = element_blank(), panel.background = element_blank(),
+        legend.box.background = element_rect(colour = "black"), legend.background = element_blank(),
+        strip.background =element_rect(fill="#f0f0f0"))+  #a6bddb  #f0f0f0
+  ggtitle("Preffered Habitat");p3
 
-ggsave("output/Summer_average_temp-groups.png",p3,dpi=600,width=8,height=6,units="in")
+ggsave("output/Summer_average_temp-groups.pdf",p3,dpi=600,width=8,height=6,units="in")
 
 ####
 
