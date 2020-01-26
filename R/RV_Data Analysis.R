@@ -76,30 +76,23 @@ ggplot(obs_depth_hal, aes(x = D_range)) + geom_histogram(stat = "count") +
 surv_ecdf = rv_round %>% filter(!is.na(Temp))
 #Abundance
 abun_ecdf = rv_round %>% filter(Presence == "P", !is.na(Temp)) %>% uncount(Abundance)
-abun_depth <- rv %>% filter(Presence == "P", !is.na(Depth))
+abun_depth <- rv_round %>% filter(Presence == "P", !is.na(Depth)) %>% uncount(Abundance)
 
 ## Abundance
 p1 = ggplot(filter(abun_ecdf, Season == "SUMMER"), 
        aes(x=Temp,y= 0, fill = stat(x))) + 
-  geom_density_ridges_gradient(scale = 1) +
-  scale_x_continuous(breaks = seq(-2, 17, by = 1), limits = c(-2,15)) + 
-  scale_fill_viridis_c(name=expression(paste("Temperature ",degree,"C",sep="")),option="C") +
+  geom_density_ridges_gradient()+
+  scale_x_continuous(breaks = seq(-1, 17, by = 1), limits = c(-1,15), expand = c(0, 0))+
+  scale_y_discrete(expand = c(0,0))+
+  geom_vline(xintercept=quantile(abun_ecdf$Temp, c(.05,.95)),lty=2,col="black")+ #90% of data between both lines
+  scale_fill_viridis_c(name=expression(paste("Temperature ",degree,"C",sep="")),option="C", labels = c("0", "5", "10", "15")) +
   theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(), panel.background = element_blank()) +
-  ggtitle("Presence of Halibut by Temperature");p1
+        panel.grid.minor = element_blank(), panel.background = element_blank(),
+        legend.position = c(.9, 0.45), legend.box.background = element_rect(colour = "black"), legend.background = element_blank())+
+  labs(y = "Density of Juvenile Habitat");p1
 
-ggsave("output/Abundance-temp.png",p1,dpi=600)
+ggsave("output/density_temp.png",p1,dpi=600,width=8,height=6,units="in")
 
-
-
-p2 <- ggplot() + geom_density(filter(abun_ecdf, Season == "SUMMER"), mapping = aes(x=Temp)) +
-  scale_x_continuous(breaks = seq(-2, 17, by = 1), limits = c(-2,15)) + 
-  scale_fill_viridis_c(name=expression(paste("Temperature ",degree,"C",sep="")),option="C") +
-  theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(), panel.background = element_blank()) +
-  ggtitle("Presence of Halibut by Temperature");p2
-
-ggsave("output/Abundance-geom_density.png",p2,dpi=600)
 
 ## Depth 
 
@@ -107,13 +100,18 @@ p3 = ggplot(filter(abun_depth, Season == "SUMMER", !is.na(Depth)),
             aes(x=Depth, y=0, fill = stat(x)))+ 
   geom_density_ridges_gradient(scale = 1, rel_min_height = 0.0001)+
   scale_x_reverse(breaks = seq(0, 550, by = 50))+
+  scale_y_discrete(expand = c(0,0))+  
+  geom_vline(xintercept=quantile(abun_depth$Depth, c(.05,.95)),lty=2,col="black")+
   coord_flip()+
-  scale_fill_viridis_c(name=expression(paste("Depth ","(M)",sep="")),option="E")+
+  scale_fill_viridis_c(name=expression(paste("Depth ","(M)",sep="")), option="E", 
+                       labels = c("500", "400", "300", "200", "100","0"))+
   theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(), panel.background = element_blank()) +
-  ggtitle("Presence of Halibut by Depth");p3
+        panel.grid.minor = element_blank(), panel.background = element_blank(), 
+        legend.position = c(.9, 0.45), legend.box.background = element_rect(colour = "black"), 
+        legend.background = element_blank())+ 
+  labs(y = "Density of Juvenile Habitat");p3
 
-ggsave("output/Abundance-depth-viridis_3zeros.png",p3,dpi=600)
+ggsave("output/density_depth.png",p3,dpi=600,width=8,height=6,units="in")
 
 
 

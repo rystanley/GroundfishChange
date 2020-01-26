@@ -110,7 +110,7 @@ p3 <- ggplot(filter(hab2,
                     Season=="Summer",
                     Depth<Pref_depth[2],
                     Depth>Pref_depth[1],
-                    NAFO %in% c("4X","3N")),
+                    NAFO %in% c("4Vs","3N")),
              aes(x=Temp,y=factor(Year),fill=stat(x)))+
   geom_vline(xintercept=Pref_temp[1:2],lty=1,col="grey60")+ #Preferred habitat (solid line)
   geom_vline(xintercept=Pref_temp[3:4],lty=2,col="grey60")+ #Marginal habitat (dashed line)
