@@ -4,7 +4,7 @@
 library(tidyverse) #dplyr and tidyr
 library(ggplot2) #plotting
 library(data.table) #faster processing
-
+library(ggridges)
 
 rv = fread("data/Halibut_2018_RV.csv")
 
@@ -91,7 +91,7 @@ p1 = ggplot(filter(abun_ecdf, Season == "SUMMER"),
         legend.position = c(.9, 0.45), legend.box.background = element_rect(colour = "black"), legend.background = element_blank())+
   labs(y = "Density of Juvenile Habitat");p1
 
-ggsave("output/density_temp.png",p1,dpi=600,width=8,height=6,units="in")
+ggsave("output/density_temp.pdf",p1,dpi=600,width=8,height=6,units="in")
 
 
 ## Depth 
@@ -111,7 +111,7 @@ p3 = ggplot(filter(abun_depth, Season == "SUMMER", !is.na(Depth)),
         legend.background = element_blank())+ 
   labs(y = "Density of Juvenile Habitat");p3
 
-ggsave("output/density_depth.png",p3,dpi=600,width=8,height=6,units="in")
+ggsave("output/density_depth.pdf",p3,dpi=600,width=8,height=6,units="in")
 
 
 
