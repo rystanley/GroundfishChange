@@ -22,20 +22,6 @@ avg_btmp = temp %>% select("Year", "ZONE", "Winter_AVG", "Summer_AVG", "Annual_A
 Avg_btm_temp_2 = melt.data.table(as.data.table(avg_btmp), id.vars = c("Year","ZONE")) %>% 
   rename(Season = variable, Temperature = value) 
 
-### THIS IS A FINAL PLOT
-  p1 <- ggplot(Avg_btm_temp_2 %>% filter(Season == "Summer_AVG"), 
-         aes(x = Year, y = Temperature,  colour = ZONE))+ 
-    geom_line()+ 
-    geom_smooth(method = "lm", aes(colour = ZONE))+
-    theme_bw()+
-    theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(), panel.background = element_blank())+
-    ggtitle("Summer Average Temperature");p1
-
-ggsave("output/Summer_average_temp.png",p1,dpi=600,width=8,height=6,units="in")
-
-
-
 
 
 
@@ -78,13 +64,13 @@ ggsave("output/Summer_average_temp-zone.png",s1,dpi=600,width=8,height=6,units="
 ## Habitat Plots ----
 load("data/BNAM_hab.RData")
 
-ggplot(filter(prop_hab, Habitat == "Preffered"), aes(x = Year, y = Proportion)) + 
-  geom_line() + facet_wrap(~ZONE, scales = "free") +
-  geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
-                                                  panel.grid.major = element_blank(),
-                                                  panel.grid.minor = element_blank(),
-                                                  panel.background = element_blank()) +
-  ggtitle("Proportion of Preffered Habitat")
+#ggplot(filter(prop_hab, Habitat == "Preffered"), aes(x = Year, y = Proportion)) + 
+#  geom_line() + facet_wrap(~ZONE, scales = "free") +
+#  geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
+                                               #   panel.grid.major = element_blank(),
+                                               #   panel.grid.minor = element_blank(),
+                                               #   panel.background = element_blank()) +
+ # ggtitle("Proportion of Preffered Habitat")
 
 
 ## Plot for poster pref hab
@@ -105,20 +91,21 @@ p3 <- ggplot(filter(prop_hab, Habitat == "Preffered", !is.na(Stock)),
   theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), panel.background = element_blank(),
         legend.box.background = element_rect(colour = "black"), legend.background = element_blank(),
-        strip.background =element_rect(fill="#f0f0f0"))+  #a6bddb  #f0f0f0
-  ggtitle("Preffered Habitat");p3
+        strip.background =element_rect(fill="#f0f0f0"))+#a6bddb  #f0f0f0
+  guides(color = guide_legend(reverse = TRUE))+
+  labs(colour = "NAFO Zone", y = "Proportion of Preffered Habitat");p3
 
-ggsave("output/Summer_average_temp-groups.pdf",p3,dpi=600,width=8,height=6,units="in")
+ggsave("output/Proportion_prefhab.pdf",p3,dpi=600,width=8,height=6,units="in")
 
 ####
 
-ggplot(filter(prop_hab, Habitat == "Good"), aes(x = Year, y = Proportion)) + 
-  geom_line() + facet_wrap(~ZONE, scales = "free") +
-  geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
-                                                  panel.grid.major = element_blank(),
-                                                  panel.grid.minor = element_blank(),
-                                                  panel.background = element_blank()) +
-  ggtitle("Proportion of Good Habitat")
+#ggplot(filter(prop_hab, Habitat == "Good"), aes(x = Year, y = Proportion)) + 
+  #geom_line() + facet_wrap(~ZONE, scales = "free") +
+  #geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
+                                             #     panel.grid.major = element_blank(),
+                                            #      panel.grid.minor = element_blank(),
+                                            #      panel.background = element_blank()) +
+ # ggtitle("Proportion of Good Habitat")
 
 
 
@@ -139,17 +126,26 @@ ggplot(GDD, aes(x = Year, y = sGDD)) +
 
 ## Second plot to transfer over
 
-GDD$Stock =  ifelse(grepl("4T|4S|4R", GDD$ZONE), "GSL",
-                    ifelse(grepl("4X|4W|4Vs|4Vn", GDD$ZONE), "SS", 
-                           ifelse(grepl("3Pn|3Ps|3O|3N", GDD$ZONE), "NF", NA)))
+GDD$Stock = ifelse(grepl("4T|4S|4R", GDD$ZONE), "GSL",
+                   ifelse(grepl("4X|4W|4Vs|4Vn", GDD$ZONE), "SS", 
+                          ifelse(grepl("3Pn|3Ps|3O|3N|3L|3M|3K", GDD$ZONE), "NF", NA)))
 
-ggplot(filter(GDD, !is.na(Stock)), aes(x = Year, y = sGDD, colour = ZONE)) + 
-  geom_line() + facet_wrap(~Stock) + 
-  geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
-                                                  panel.grid.major = element_blank(),
-                                                  panel.grid.minor = element_blank(),
-                                                  panel.background = element_blank()) +
-  ggtitle("Scaled Annual Average GDD per Grid Cell")
+GDD$Stock <- factor(GDD$Stock, levels=c("SS", "GSL", "NF"))
+
+p4 <- ggplot(GDD, aes(x = Year, y = sGDD,  colour = ZONE))+ 
+  geom_line()+ 
+  geom_smooth(method = "lm", aes(colour = ZONE), se = FALSE)+
+  facet_wrap(~Stock)+
+  scale_colour_viridis(discrete = TRUE, option = "D")+ 
+  theme_bw()+
+  theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), panel.background = element_blank(),
+        legend.box.background = element_rect(colour = "black"), legend.background = element_blank(),
+        strip.background =element_rect(fill="#f0f0f0"))+#a6bddb  #f0f0f0
+  guides(color = guide_legend(reverse = TRUE))+
+  labs(colour = "NAFO Zone", y = "GDD");p4
+
+ggsave("output/Standardized_GDD.pdf",p4,dpi=600,width=8,height=6,units="in")
 
 #########
 
