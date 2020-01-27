@@ -81,25 +81,14 @@ single_map <- map_temp%>%
   group_by(Latitude, Longitude)%>%
   summarise(mTemp = mean(Annual_AVG))
 
-
 ## @Ryan, for some reason this code doesn't work when I try to assign it (m1 <- make_map(...) and print it (;m1) any idea why?
 #
-m1 <- make_map(single_map,long.lim = c(-72.99797, -46))+ #get rid of non-halibut area on the plot
+m1 <- make_map(single_map,long.lim = c(-72.99797, -46),NAFO=NAFO)+ #get rid of non-halibut area on the plot
   scale_fill_viridis_c(limits=c(filter(lims,Season==Seasons[1])%>%pull(min),
                                 filter(lims,Season==Seasons[1])%>%pull(max)),
                        option = "C",
                        name=expression(paste("Temperature ",degree,"C",sep="")))+
   ggtitle(paste0("Average ",gsub("_AVG","",Seasons[1])," Temperature "))+
-  theme(legend.position = "right")+ 
-  geom_sf(data = NAFO, colour = "black", fill = NA);m1
+  theme(legend.position = "right");m1
 
 ggsave("output/map_temp.pdf",m1,dpi=600,width=8,height=6,units="in")
-
-
-
-
-
-
-
-
-
