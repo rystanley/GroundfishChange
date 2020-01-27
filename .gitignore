@@ -5,3 +5,4 @@
 marmap_coord*.csv
 data/Divisions*
 *.png
+data/*.csv
