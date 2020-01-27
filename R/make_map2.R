@@ -1,4 +1,4 @@
-make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,NAFO=NULL,
+make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,bathylims=-200,NAFO=NULL,
                      variable="",trans=NULL,facetorder=NULL,ncol=2,buffer=NULL,
                      long.lim = NULL,lat.lim=NULL,
                      lims = NULL){
@@ -191,7 +191,7 @@ make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,NAF
   }
   
   #apply bathymetric contour (hard coded at 200 m for the ~shelf break)   
-  if(bathy){p1 <- p1+geom_contour(data=bathy,aes(x=x,y=y,z=z),breaks=c(-200),lwd=0.05,colour="grey20")}
+  if(bathy){p1 <- p1+geom_contour(data=bathy,aes(x=x,y=y,z=z),breaks=bathylims,lwd=0.05,colour="grey20")}
   
   #Apply facet
   if(!is.null(facet)){p1=p1+facet_wrap(~GROUP,ncol=ncol)} 
