@@ -1,4 +1,4 @@
-make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,
+make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,NAFO=NULL,
                      variable="",trans=NULL,facetorder=NULL,ncol=2,buffer=NULL,
                      long.lim = NULL,lat.lim=NULL,
                      lims = NULL){
@@ -11,6 +11,7 @@ make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,
   #rasterFun - function for the rasterize function -- see ?raster::rasterize for details 
   #facet - variable to facet the data by (this is a grouping variable) (default is NULL)
   #bathy - logical (default: FALSE) specifying whether you want a bathymetric contour line
+  #NAFO - is a NAFO sf object (default is NULL)
   #variable - legend title for "z" variable
   #trans - variable specifying if any transfomration should be applied to the fill scale (default is no transformation (NULL) and the other option is 'log')
   #ncol - is the number of columns  for a facet - default is 2
@@ -29,7 +30,6 @@ make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,
   require(dplyr)
   require(sf)
   require(rnaturalearth)
-  
   
   #Function to take xyz and create gridded raster data -------------
   rasFun <- function(x,...){
@@ -138,9 +138,9 @@ make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,
   #get mapping baselayers ----------
   
    Canada <- ne_states(country = "Canada",returnclass = "sf")%>%
-    st_transform(latlong)%>%
-    filter(name %in% c("Nunavut","Ontario","Québec","Newfoundland and Labrador",
-                       "Nova Scotia","Prince Edward Island","New Brunswick"))%>%
+    # st_transform(latlong)%>%
+    # filter(name %in% c("Nunavut","Ontario","Québec","Newfoundland and Labrador",
+    #                    "Nova Scotia","Prince Edward Island","New Brunswick"))%>%
     select(latitude,longitude,geonunit,geometry)%>%
     st_union()%>% #group provinces + territories
     st_as_sf()
@@ -153,6 +153,7 @@ make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,
     st_as_sf()
   
   #Make the plot ----------
+  if(is.null(NAFO)){
   p1 <- ggplot() +
     geom_sf(data=ras,aes(fill=MAP),colour=NA)+
     geom_sf(data = Canada) + 
@@ -167,20 +168,30 @@ make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,
           strip.background = element_rect(colour = "black", fill = "white"))+
     labs(x=expression(paste("Longitude ",degree,"W",sep="")),
          y=expression(paste("Latitude ",degree,"N",sep="")))
+  }
+  
+  if(!is.null(NAFO)){
+    p1 <- ggplot() +
+      geom_sf(data=ras,aes(fill=MAP),colour=NA)+
+      geom_sf(data = NAFO, colour = "black", fill = NA)+
+      geom_sf_text(data=NAFO_poly,aes(label=ZONE),colour="white")+
+      geom_sf(data = Canada) + 
+      geom_sf(data = USA) + 
+      coord_sf(xlim = Long.lim,  ylim = Lat.lim, expand=FALSE)+
+      theme_bw()+
+      theme(legend.position = "bottom",
+            panel.grid.major = element_blank(), 
+            panel.grid.minor = element_blank(),
+            panel.background = element_rect(fill = "white", colour = "black"),
+            plot.background = element_rect(colour = "white"),
+            strip.background = element_rect(colour = "black", fill = "white"))+
+      labs(x=expression(paste("Longitude ",degree,"W",sep="")),
+           y=expression(paste("Latitude ",degree,"N",sep="")))
+    
+  }
   
   #apply bathymetric contour (hard coded at 200 m for the ~shelf break)   
   if(bathy){p1 <- p1+geom_contour(data=bathy,aes(x=x,y=y,z=z),breaks=c(-200),lwd=0.05,colour="grey20")}
-  
-  # #apply colour scales to plot
-  # #regular scale
-  # if(is.null(trans)){
-  #   p1 <- p1+scale_fill_gradientn(name=variable,
-  #                                 colours=colorRampPalette(rev(c("red","yellow","springgreen","royalblue")))(50),
-  #                                 na.value="white")}
-  # #log transformed scale
-  # if(!is.null(trans)){
-  #   p1 <- p1+scale_colour_gradientn(name=variable,colours=colorRampPalette(rev(c("red","yellow","springgreen","royalblue")))(50),trans="log10",
-  #                                 breaks=breaks,labels=labels,na.value="white")}
   
   #Apply facet
   if(!is.null(facet)){p1=p1+facet_wrap(~GROUP,ncol=ncol)} 
@@ -189,4 +200,3 @@ make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,
   return(p1)
   
 }
-
