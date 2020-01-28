@@ -81,7 +81,7 @@ prop_hab$Stock =  ifelse(grepl("4T|4S|4R", prop_hab$ZONE), "GSL",
 
 prop_hab$Stock <- factor(prop_hab$Stock, levels=c("SS", "GSL", "NF"))
 
-p3 <- ggplot(filter(prop_hab, Habitat == "Preffered", !is.na(Stock)), 
+p3 <- ggplot(filter(prop_hab, Habitat == "Good", !is.na(Stock), ZONE != "3M"), 
        aes(x = Year, y = Proportion,  colour = ZONE))+ 
   geom_line()+ 
   geom_smooth(method = "lm", aes(colour = ZONE), se = FALSE)+
@@ -91,11 +91,13 @@ p3 <- ggplot(filter(prop_hab, Habitat == "Preffered", !is.na(Stock)),
   theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), panel.background = element_blank(),
         legend.box.background = element_rect(colour = "black"), legend.background = element_blank(),
-        strip.background =element_rect(fill="#f0f0f0"))+#a6bddb  #f0f0f0
+        strip.background =element_rect(fill="#f0f0f0"),
+        text = element_text(size=17), axis.text.x = element_text(color = "grey20", size = 14, vjust = .5),
+        axis.text.y = element_text(color = "grey20", size = 14, vjust = .5))+
   guides(color = guide_legend(reverse = TRUE))+
-  labs(colour = "NAFO Zone", y = "Proportion of Preffered Habitat");p3
+  labs(colour = "NAFO\nDivision", y = "Proportion of Preffered Habitat\n", x = "\nYear");p3
 
-ggsave("output/Proportion_prefhab.pdf",p3,dpi=600,width=8,height=6,units="in")
+ggsave("output/Proportion_hab_3-10.tiff",p3,dpi=600,width=8,height=6,units="in")
 
 ####
 
@@ -132,7 +134,7 @@ GDD$Stock = ifelse(grepl("4T|4S|4R", GDD$ZONE), "GSL",
 
 GDD$Stock <- factor(GDD$Stock, levels=c("SS", "GSL", "NF"))
 
-p4 <- ggplot(GDD, aes(x = Year, y = sGDD,  colour = ZONE))+ 
+p4 <- ggplot(GDD %>% filter(ZONE != "3M"), aes(x = Year, y = sGDD,  colour = ZONE))+ 
   geom_line()+ 
   geom_smooth(method = "lm", aes(colour = ZONE), se = FALSE)+
   facet_wrap(~Stock)+
@@ -141,11 +143,13 @@ p4 <- ggplot(GDD, aes(x = Year, y = sGDD,  colour = ZONE))+
   theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), panel.background = element_blank(),
         legend.box.background = element_rect(colour = "black"), legend.background = element_blank(),
-        strip.background =element_rect(fill="#f0f0f0"))+#a6bddb  #f0f0f0
+        strip.background =element_rect("#f0f0f0"),
+        text = element_text(size=17), axis.text.x = element_text(color = "grey20", size = 14, vjust = .5),
+        axis.text.y = element_text(color = "grey20", size = 14, vjust = .5))+#a6bddb  #f0f0f0
   guides(color = guide_legend(reverse = TRUE))+
-  labs(colour = "NAFO Zone", y = "GDD");p4
+  labs(colour = "NAFO\nDivision", y = "GDD\n", x = "\nYear");p4
 
-ggsave("output/Standardized_GDD.pdf",p4,dpi=600,width=8,height=6,units="in")
+ggsave("output/Standardized_GDD.tiff",p4,dpi=600,width=8,height=6,units="in")
 
 #########
 

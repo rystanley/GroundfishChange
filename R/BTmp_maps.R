@@ -88,7 +88,9 @@ m1 <- make_map(single_map,long.lim = c(-72.99797, -46),NAFO=NAFO)+ #get rid of n
                                 filter(lims,Season==Seasons[1])%>%pull(max)),
                        option = "C",
                        name=expression(paste("Temperature ",degree,"C",sep="")))+
-  ggtitle(paste0("Average ",gsub("_AVG","",Seasons[1])," Temperature "))+
-  theme(legend.position = "right");m1
+  theme(legend.position = "right", 
+        text = element_text(size=17), axis.text.x = element_text(color = "grey20", size = 14, vjust = .5),
+        axis.text.y = element_text(color = "grey20", size = 14, vjust = .5),
+        axis.title.x = element_text(margin = margin(t = 10)), axis.title.y = element_text(margin = margin(b = 10)));m1
 
-ggsave("output/map_temp.pdf",m1,dpi=600,width=8,height=6,units="in")
+ggsave("output/map_temp2.tiff",m1,dpi=600,width=8,height=6,units="in")

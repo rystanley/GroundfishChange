@@ -112,12 +112,16 @@ p3 <- ggplot(filter(hab2,
                     Depth>Pref_depth[1],
                     NAFO %in% c("4W","3N")),
              aes(x=Temp,y=factor(Year),fill=stat(x)))+
-  geom_vline(xintercept=Pref_temp[1:2],lty=1,col="grey60")+ #Preferred habitat (solid line)
-  geom_vline(xintercept=Pref_temp[3:4],lty=2,col="grey60")+ #Marginal habitat (dashed line)
+  #geom_vline(xintercept=Pref_temp[1:2],lty=1,col="grey60")+ #Preferred habitat (solid line)
+  geom_vline(xintercept=c(3,10),lty=2,col="grey60")+ #Marginal habitat (dashed line)
   geom_density_ridges_gradient(rel_min_height = 0.01,alpha=0.9)+
   scale_fill_viridis_c(name=expression(paste("Temperature ",degree,"C",sep="")),option="C")+
   theme_bw()+
+  theme(axis.line = element_line(colour = "black"), panel.background = element_blank(),
+        strip.background =element_rect("#f0f0f0"),
+        text = element_text(size=16), axis.text.x = element_text(color = "grey20", size = 12, vjust = .5),
+        axis.text.y = element_text(color = "grey20", size = 12, vjust = .5))+
   facet_wrap(~NAFO,ncol=2)+
-  labs(x=expression(paste("Temperature ",degree,"C",sep="")),y="Year");p3
+  labs(x=expression(paste("\nTemperature ",degree,"C",sep="")),y="Year\n");p3
 
-ggsave("output/temp_byyear.pdf",p3,dpi=600, width=8,height=6,units="in")
+ggsave("output/temp_ridges.tiff",p3,dpi=600, width=8,height=6,units="in")
