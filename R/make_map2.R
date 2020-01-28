@@ -174,7 +174,7 @@ make_map <- function(xyz,resolution=10,rasterFun=mean,facet=NULL,bathy=FALSE,bat
     p1 <- ggplot() +
       geom_sf(data=ras,aes(fill=MAP),colour=NA)+
       geom_sf(data = NAFO, colour = "black", fill = NA)+
-      geom_sf_text(data=NAFO_poly,aes(label=ZONE),colour="white")+
+      geom_sf_text(data=NAFO,aes(label=ZONE),colour="white")+
       geom_sf(data = Canada) + 
       geom_sf(data = USA) + 
       coord_sf(xlim = Long.lim,  ylim = Lat.lim, expand=FALSE)+
