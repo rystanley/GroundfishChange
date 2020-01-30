@@ -120,8 +120,8 @@ p3 <- ggplot(filter(hab2,
   theme(axis.line = element_line(colour = "black"), panel.background = element_blank(),
         strip.background =element_rect("#f0f0f0"),
         text = element_text(size=16), axis.text.x = element_text(color = "grey20", size = 12, vjust = .5),
-        axis.text.y = element_text(color = "grey20", size = 12, vjust = .5))+
+        axis.text.y = element_text(color = "grey20", size = 12, vjust = .5), legend.position = "bottom")+
   facet_wrap(~NAFO,ncol=2)+
-  labs(x=expression(paste("\nTemperature ",degree,"C",sep="")),y="Year\n");p3
+  labs(x = "", y="Year\n");p3
 
-ggsave("output/temp_ridges.tiff",p3,dpi=600, width=8,height=6,units="in")
+ggsave("output/temp_ridges.tiff",p3,dpi=600, width=8,height=8,units="in")
