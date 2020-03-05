@@ -2,10 +2,11 @@
 library(tidyverse)
 library(car)
 library(broom)
-
+library(marmap)
+library(mapdata)
 
 ## Avereage Bottom Temperatures
-load("BNAM_Step2.RData")
+load("data/BNAM_Step2.RData")
 
 btmp$ZONE <- factor(btmp$ZONE)
 mTemp <- btmp %>% group_by(Year, ZONE) %>%  
@@ -44,8 +45,31 @@ rsquare <- mTemp %>%
   unnest(model) %>% 
   select(ZONE, data, r.squared, adj.r.squared)
 
+##Merge data frames
+slopes <- full_join(lm_vals %>% select(-data), rsquare %>% select(-data))
 
 
+#Map for Presentation (attempt 1)
+latlong <- "+proj=longlat +datum=NAD83 +no_defs +ellps=GRS80 +towgs84=0,0,0"
+load("data/BNAM_map.RData")
+canada <- map_data("worldHires", "Canada")
+
+NAFO <- st_read("data/Divisions.shp")%>%
+  st_transform(latlong)%>%
+  select(ZONE,geometry)%>%
+  filter(!is.na(ZONE), grepl("[345]", ZONE)) 
+
+NAFO_slopes <- full_join(slopes, NAFO %>% filter(grepl("[34]", ZONE))) %>% select(ZONE, geometry, estimate)
+
+
+ggplot(NAFO_slopes)+
+  geom_sf(aes(fill = estimate, geometry = geometry))+
+  scale_fill_viridis_c(option = "D",
+                       name=expression(paste("Rate of Change")))+
+  geom_polygon(data = canada, aes(x=long, y = lat, group = group), 
+               fill = "grey70")+
+  coord_sf(xlim = c(-42, -68), ylim = c(39, 52), expand = FALSE) +
+  theme_bw()
 ## Preferred Habitat --
 load("BNAM_hab.RData")
 #This is depth between 25-200m
