@@ -37,13 +37,13 @@ library(Hmisc)
     #Ryan edit - Put this all in pipe and pre-defined the limits. THis way you can more quickly
     #play with the limits and don't have to go through the mess of code to do it. 
 
-  Pref_depth <- c(50,200,25,200)
-  Pref_temp <- c(3,8,1.5,10)
+  Pref_depth <- c(25,200,25,200)
+  Pref_temp <- c(3,15,3,10)
 
   hab  <-  btmp%>%
          select(Longitude, Latitude, Depth, Winter_AVG, Summer_AVG, Annual_AVG, Year)%>%
          mutate(Habitat = ifelse(Annual_AVG >= Pref_temp[1] & Annual_AVG <= Pref_temp[2] & 
-                                 Depth >= Pref_depth[1] & Depth <= Pref_depth[2], "Preffered",
+                                 Depth >= Pref_depth[1] & Depth <= Pref_depth[2], "Preferred",
                                  ifelse(Annual_AVG >= Pref_temp[3] & Annual_AVG <= Pref_temp[4] & 
                                         Depth >= Pref_depth[3] & Depth <= Pref_depth[4],
                                                      "Good", "Not_suitable")))
@@ -76,12 +76,12 @@ hab_group <-  hab%>%
 #a step and then mess up the process. Hopefully this can be followed from your previous steps (commented below)
 
 prop_hab <- hab_group%>%spread(key=Habitat,value=n)%>%
-             mutate(Total = Good + Preffered + Not_suitable,
-                    Good = (Good + Preffered)/Total, #proportion good habitat
-                    Preffered = Preffered/Total,
+             mutate(Total = Good + Preferred + Not_suitable,
+                    Good = (Good + Preferred)/Total, #proportion good habitat
+                    Preferred = Preferred/Total,
                     Not_suitable = Not_suitable/Total)%>%# note it is key that these are done sequentially as each mutate steps over writes the previous column
-            select(Year, ZONE, Preffered, Good)%>%
-            gather(Preffered:Good, key = Habitat, value = Proportion) #melting data to long format
+            select(Year, ZONE, Preferred, Good)%>%
+            gather(Preferred:Good, key = Habitat, value = Proportion) #melting data to long format
 
     # #create character vector containg all unique habitat names
     # #create dataframe containing all zones by year
@@ -97,23 +97,23 @@ prop_hab <- hab_group%>%spread(key=Habitat,value=n)%>%
 
     # 
     # #create new dataframe with year, zone, habitat and actualy numbers to calculate percentages
-    # #create new dataframe where some vars are not exclusive i.e good should include preffered
+    # #create new dataframe where some vars are not exclusive i.e good should include Preferred
     # 
     # prop_hab = total_hab
-    # prop_hab$Total = total_hab$Good + total_hab$Preffered + total_hab$Not_suitable 
-    # prop_hab$Good = total_hab$Good + total_hab$Preffered
+    # prop_hab$Total = total_hab$Good + total_hab$Preferred + total_hab$Not_suitable 
+    # prop_hab$Good = total_hab$Good + total_hab$Preferred
 
     # convert numbers to proportions
-    # prop_hab$Preffered = prop_hab$Preffered/prop_hab$Total
+    # prop_hab$Preferred = prop_hab$Preferred/prop_hab$Total
     # prop_hab$Good = prop_hab$Good/prop_hab$Total
 
 
     # #clean up data frame
-    # prop_hab = prop_hab %>% select(Year, ZONE, Preffered, Good)
+    # prop_hab = prop_hab %>% select(Year, ZONE, Preferred, Good)
     # 
     # #melting data to long format
     # #must be a data.table to melt 
-    # prop_hab = prop_hab %>% gather(Preffered:Good, key = Habitat, value = Proportion)
+    # prop_hab = prop_hab %>% gather(Preferred:Good, key = Habitat, value = Proportion)
 
 save(prop_hab, file = "data/BNAM_hab.RData")
 
@@ -197,7 +197,7 @@ gdd_average = gdd_dep %>% mutate(mGDD = ifelse(Temp >= 3, Temp*DPM, 0)) %>% grou
   ##Removing monthly data from dataframe
   map_temp = btmp %>% select(Longitude, Latitude, Annual_AVG, Winter_AVG, Summer_AVG, Year)
   
-  save(map_temp, file = "C:/Users/User/Documents/School 2019-2020/Halibut/BIO/BNAM_map.RData")
+  save(map_temp, file = "BNAM_map.RData")
   
 ## Stock Calculation for later
 

@@ -50,7 +50,7 @@ rsquare <- mTemp %>%
 load("BNAM_hab.RData")
 #This is depth between 25-200m
 
-hab <- prop_hab %>% filter(Habitat == "Preffered")
+hab <- prop_hab %>% filter(Habitat == "Preferred")
 
 ##Creating a saturated model
 hab_lm <- lm(Proportion ~ ZONE*Year, hab)
@@ -68,7 +68,7 @@ lm_vals0 <- hab %>%
 ## GDD --
 load("GDD.RData")
 #Should depth be restriced to <400 or <200 (note to self change code to restrict depth in GDD if I haven't)
-GDD <- GDD %>% filter(Habitat == "Preffered")
+GDD <- GDD %>% filter(Habitat == "Preferred")
 
 ##Creating a saturated model
 gdd_lm <- lm(sGDD ~ ZONE*Year, hab)

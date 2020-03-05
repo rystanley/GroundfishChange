@@ -56,7 +56,7 @@ s1 <- ggplot(Avg_btm_temp_2 %>% filter(Season == 'Summer_AVG'), aes(x = Year, y 
                                                   panel.grid.major = element_blank(),
                                                   panel.grid.minor = element_blank(),
                                                   panel.background = element_blank()) +
-  ggtitle("Summer Avereage Temperature")
+  ggtitle("Summer Avereage Temperature");s1
 
 ggsave("output/Summer_average_temp-zone.png",s1,dpi=600,width=8,height=6,units="in")
 
@@ -64,13 +64,13 @@ ggsave("output/Summer_average_temp-zone.png",s1,dpi=600,width=8,height=6,units="
 ## Habitat Plots ----
 load("data/BNAM_hab.RData")
 
-#ggplot(filter(prop_hab, Habitat == "Preffered"), aes(x = Year, y = Proportion)) + 
+#ggplot(filter(prop_hab, Habitat == "Preferred"), aes(x = Year, y = Proportion)) + 
 #  geom_line() + facet_wrap(~ZONE, scales = "free") +
 #  geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
                                                #   panel.grid.major = element_blank(),
                                                #   panel.grid.minor = element_blank(),
                                                #   panel.background = element_blank()) +
- # ggtitle("Proportion of Preffered Habitat")
+ # ggtitle("Proportion of Preferred Habitat")
 
 
 ## Plot for poster pref hab
@@ -95,7 +95,7 @@ p3 <- ggplot(filter(prop_hab, Habitat == "Good", !is.na(Stock), ZONE != "3M"),
         text = element_text(size=17), axis.text.x = element_text(color = "grey20", size = 14, vjust = .5),
         axis.text.y = element_text(color = "grey20", size = 14, vjust = .5))+
   guides(color = guide_legend(reverse = TRUE))+
-  labs(colour = "NAFO\nDivision", y = "Proportion of Preffered Habitat\n", x = "\nYear");p3
+  labs(colour = "NAFO\nDivision", y = "Proportion of Preferred Habitat\n", x = "\nYear");p3
 
 ggsave("output/Proportion_hab_3-10.tiff",p3,dpi=600,width=8,height=6,units="in")
 
@@ -226,7 +226,7 @@ ggplot(stock_temp, aes(x = Year, y = Ann_AVG, colour = Stock)) +
                                                                 panel.background = element_blank()) +
   ggtitle("Annual Bottom Temperature")
 
-###Proportion of habitat type by zone for preffered and good temperatures with and without preffered depth
+###Proportion of habitat type by zone for Preferred and good temperatures with and without Preferred depth
 
 ggplot(percent_pref, aes(x = Year, y = proportion)) + 
   geom_line() + facet_wrap(~ZONE, scales = "free") +
@@ -234,7 +234,7 @@ ggplot(percent_pref, aes(x = Year, y = proportion)) +
                                                   panel.grid.major = element_blank(),
                                                   panel.grid.minor = element_blank(),
                                                   panel.background = element_blank()) +
-  ggtitle("Proportion of Preffered Habitat")
+  ggtitle("Proportion of Preferred Habitat")
 
 
 ggplot(percent_good, aes(x = Year, y = proportion)) + 
@@ -248,15 +248,15 @@ ggplot(percent_good, aes(x = Year, y = proportion)) +
 
 
 
-###Proportion of habitat type by stock for preffered and good temperatures with and without preffered depth
-filter(stock_hab, Habitat_suitability == "Preffered") %>%  
+###Proportion of habitat type by stock for Preferred and good temperatures with and without Preferred depth
+filter(stock_hab, Habitat_suitability == "Preferred") %>%  
   ggplot(aes(x = Year, y = proportion, colour = Stock)) + 
   geom_line() +
   geom_smooth(method = "lm") + theme(axis.line = element_line(colour = "black"),
                                      panel.grid.major = element_blank(),
                                      panel.grid.minor = element_blank(),
                                      panel.background = element_blank()) +
-  ggtitle("Proportion of Preffered Habitat")
+  ggtitle("Proportion of Preferred Habitat")
 
 
 
