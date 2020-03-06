@@ -50,26 +50,56 @@ slopes <- full_join(lm_vals %>% select(-data), rsquare %>% select(-data))
 
 
 #Map for Presentation (attempt 1)
-latlong <- "+proj=longlat +datum=NAD83 +no_defs +ellps=GRS80 +towgs84=0,0,0"
+#get mapping baselayers ----------
 load("data/BNAM_map.RData")
-canada <- map_data("worldHires", "Canada")
+Canada <- ne_states(country = "Canada",returnclass = "sf")%>%
+  select(latitude,longitude,geonunit,geometry)%>%
+  st_union()%>% #group provinces + territories
+  st_as_sf()
+
+USA <- ne_states(country = "United States of America",returnclass = "sf")%>%
+  st_transform(latlong)%>%
+  filter(region%in%c("Northeast","South"))%>%
+  select(latitude,longitude,geonunit,geometry)%>%
+  st_union()%>% #group states
+  st_as_sf()
+
 
 NAFO <- st_read("data/Divisions.shp")%>%
   st_transform(latlong)%>%
   select(ZONE,geometry)%>%
   filter(!is.na(ZONE), grepl("[345]", ZONE)) 
 
-NAFO_slopes <- full_join(slopes, NAFO %>% filter(grepl("[34]", ZONE))) %>% select(ZONE, geometry, estimate)
+#merge data frames with NAFO regions and slopes for temperature change
+NAFO_slopes <- full_join(slopes, NAFO %>% filter(grepl("[345]", ZONE))) %>% select(ZONE, geometry, estimate)
 
 
-ggplot(NAFO_slopes)+
-  geom_sf(aes(fill = estimate, geometry = geometry))+
-  scale_fill_viridis_c(option = "D",
-                       name=expression(paste("Rate of Change")))+
-  geom_polygon(data = canada, aes(x=long, y = lat, group = group), 
-               fill = "grey70")+
-  coord_sf(xlim = c(-42, -68), ylim = c(39, 52), expand = FALSE) +
-  theme_bw()
+p <- ggplot(NAFO_slopes)+
+        geom_sf(aes(fill = estimate, geometry = geometry))+
+        scale_fill_viridis_c(option = "D",
+                             name=expression(paste("Rate of Change (", degree,"C per year)")))+
+        geom_sf_text(data=NAFO,aes(label=ZONE),colour="red", size = 7 )+
+        geom_sf(data = Canada)+
+        geom_sf(data = USA)+
+        coord_sf(xlim = c(-42, -71.7), ylim = c(39, 52), expand = FALSE) +
+        theme_bw()+
+        theme(legend.position = "bottom",
+              legend.text = element_text(angle=-90, vjust = .6),
+              text = element_text(size=18), 
+              axis.text.x = element_text(color = "grey20", size = 12, vjust = .5),
+              axis.text.y = element_text(color = "grey20", size = 12, vjust = .5),
+              axis.title.x = element_text(margin = margin(t = 10)), 
+              axis.title.y = element_text(margin = margin(b = 10)),
+              panel.grid.major = element_blank(), 
+              panel.grid.minor = element_blank(),
+              panel.background = element_rect(fill = "white", colour = "black"),
+              plot.background = element_rect(colour = "white"),
+              strip.background = element_rect(colour = "black", fill = "white"))+
+        labs(x=expression(paste("Longitude ",degree,"W",sep="")),
+             y=expression(paste("Latitude ",degree,"N",sep="")));p
+
+ggsave("output/map_slopes.tiff",p,dpi=300,width=12,height=8,units="in")
+
 ## Preferred Habitat --
 load("BNAM_hab.RData")
 #This is depth between 25-200m
