@@ -1,9 +1,11 @@
+library(tidyverse)
+library(sf)
+
 library(data.table)
 library(sp)
-library(sf) 
+ 
 library(ggplot2)
 library(here)
-library(tidyverse)
 library(rnaturalearth)
 library(Hmisc)
 
@@ -16,6 +18,12 @@ library(Hmisc)
       st_transform(latlong)%>%
       select(ZONE,geometry)%>%
       filter(!is.na(ZONE))
+  #read in EEZ shape file
+    EEZ <- st_read("data/Canada_EEZ.shp")%>%
+      st_transform(latlong)%>%
+      select(EEZ, geometry)
+  #cropping NAFO divisions by EEZ, by using st_intersects to keep only the area that is in both
+    NAFO <- NAFO %>% st_intersection(EEZ) %>% select(ZONE, geometry)
 
 ## Bottom Temperature Data Prep ----
 
@@ -38,7 +46,7 @@ library(Hmisc)
     #play with the limits and don't have to go through the mess of code to do it. 
 
   Pref_depth <- c(25,200,25,200)
-  Pref_temp <- c(3,15,3,10)
+  Pref_temp <- c(3,15,1,17)
 
   hab  <-  btmp%>%
          select(Longitude, Latitude, Depth, Winter_AVG, Summer_AVG, Annual_AVG, Year)%>%
@@ -146,7 +154,7 @@ save(prop_hab, file = "data/BNAM_hab.RData")
 
 
 ## GDD Calculation Prep ----
-  gdd = gdd %>%  gather(M1:M12, key = Month, value = Temp) %>% mutate(Depth_range = ifelse(Depth >= 25 & Depth <= 200, "Within", "Outside"), DPM = ifelse(grepl("//bM1//b|M3|M5|M7|M8|M10|M12", .$Month), 31, ifelse(grepl("M4|M6|M9|M11", .$Month), 30, 28))) %>% 
+  gdd = gdd %>%  gather(M1:M12, key = Month, value = Temp) %>% mutate(Depth_range = ifelse(Depth >= 25 & Depth <= 400, "Within", "Outside"), DPM = ifelse(grepl("//bM1//b|M3|M5|M7|M8|M10|M12", .$Month), 31, ifelse(grepl("M4|M6|M9|M11", .$Month), 30, 28))) %>% 
     mutate(GDD = Temp*DPM)
   
   
