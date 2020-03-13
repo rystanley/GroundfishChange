@@ -1,12 +1,16 @@
-library(data.table)
-library(sp)
+library(tidyverse)
 library(sf) 
+library(data.table)
+library(viridis)
+
+library(sp)
+
 library(ggplot2)
 library(here)
-library(tidyverse)
+
 library(rnaturalearth)
 library(Hmisc)
-library(viridis)
+
 
 
 #Load Data
@@ -21,7 +25,6 @@ avg_btmp = temp %>% select("Year", "ZONE", "Winter_AVG", "Summer_AVG", "Annual_A
 #Melting data into long format for implementing season as group
 Avg_btm_temp_2 = melt.data.table(as.data.table(avg_btmp), id.vars = c("Year","ZONE")) %>% 
   rename(Season = variable, Temperature = value) 
-
 
 
 
@@ -81,7 +84,7 @@ prop_hab$Stock =  ifelse(grepl("4T|4S|4R", prop_hab$ZONE), "GSL",
 
 prop_hab$Stock <- factor(prop_hab$Stock, levels=c("SS", "GSL", "NF"))
 
-p3 <- ggplot(filter(prop_hab, Habitat == "Good", !is.na(Stock), ZONE != "3M"), 
+p3 <- ggplot(filter(prop_hab, Habitat == "Preferred", !is.na(Stock), ZONE != "3M"), 
        aes(x = Year, y = Proportion,  colour = ZONE))+ 
   geom_line()+ 
   geom_smooth(method = "lm", aes(colour = ZONE), se = FALSE)+
@@ -97,7 +100,7 @@ p3 <- ggplot(filter(prop_hab, Habitat == "Good", !is.na(Stock), ZONE != "3M"),
   guides(color = guide_legend(reverse = TRUE))+
   labs(colour = "NAFO\nDivision", y = "Proportion of Preferred Habitat\n", x = "\nYear");p3
 
-ggsave("output/Proportion_hab_3-10.tiff",p3,dpi=600,width=8,height=6,units="in")
+ggsave("output2/hab_EEZ_3-15.tiff",p3,dpi=300,width=8,height=6,units="in")
 
 ####
 
