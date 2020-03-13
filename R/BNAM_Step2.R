@@ -1,14 +1,6 @@
 library(tidyverse)
 library(sf)
 
-library(data.table)
-library(sp)
- 
-library(ggplot2)
-library(here)
-library(rnaturalearth)
-library(Hmisc)
-
 ## General Mapping information ----
   #common projection 
     latlong <- "+proj=longlat +datum=NAD83 +no_defs +ellps=GRS80 +towgs84=0,0,0"
