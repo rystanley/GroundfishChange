@@ -1,11 +1,13 @@
 
 library(tidyverse)
+library(data.table)
+
 library(car)
 library(broom)
 library(marmap)
 library(mapdata)
 
-## Avereage Bottom Temperatures
+## Avereage Bottom Temperatures ----
 load("data/BNAM_Step2.RData")
 
 btmp$ZONE <- factor(btmp$ZONE)
@@ -30,7 +32,7 @@ zones <- as.character(unique(mTemp$ZONE))
 
 
 #Organising all lm values into a dataframe
-lm_vals <- mTemp %>% 
+lm_vals_temp <- mTemp %>% 
               group_by(ZONE) %>% 
               nest() %>% 
               mutate(model = map(data, ~lm(Temp ~ Year, data = .) %>% tidy)) %>% 
@@ -38,7 +40,7 @@ lm_vals <- mTemp %>%
               filter(term == 'Year')
 
 #Organising all lm values into a dataframe
-rsquare <- mTemp %>% 
+rsquare_temp <- mTemp %>% 
   group_by(ZONE) %>% 
   nest() %>% 
   mutate(model = map(data, ~lm(Temp ~ Year, data = .) %>% glance)) %>% 
@@ -46,11 +48,15 @@ rsquare <- mTemp %>%
   select(ZONE, data, r.squared, adj.r.squared)
 
 ##Merge data frames
-slopes <- full_join(lm_vals %>% select(-data), rsquare %>% select(-data))
+slopes_temp <- full_join(lm_vals_temp %>% select(-data), rsquare_temp %>% select(-data))%>% 
+  mutate(Y_var = "Annual Avg Temp")
 
 
-#Map for Presentation (attempt 1)
-#get mapping baselayers ----------
+
+
+
+##Map for Presentation (attempt 1)
+#get mapping baselayers 
 load("data/BNAM_map.RData")
 Canada <- ne_states(country = "Canada",returnclass = "sf")%>%
   select(latitude,longitude,geonunit,geometry)%>%
@@ -71,8 +77,7 @@ NAFO <- st_read("data/Divisions.shp")%>%
   filter(!is.na(ZONE), grepl("[345]", ZONE)) 
 
 #merge data frames with NAFO regions and slopes for temperature change
-NAFO_slopes <- full_join(slopes, NAFO %>% filter(grepl("[345]", ZONE))) %>% select(ZONE, geometry, estimate)
-
+NAFO_slopes <- full_join(slopes, NAFO %>% filter(grepl("[345]", ZONE))) %>% select(ZONE, geometry, estimate) 
 
 p <- ggplot(NAFO_slopes)+
         geom_sf(aes(fill = estimate, geometry = geometry))+
@@ -100,8 +105,8 @@ p <- ggplot(NAFO_slopes)+
 
 ggsave("output/map_slopes.tiff",p,dpi=300,width=12,height=8,units="in")
 
-## Preferred Habitat --
-load("BNAM_hab.RData")
+## Preferred Habitat ----
+load("data/BNAM_hab.RData")
 #This is depth between 25-200m
 
 hab <- prop_hab %>% filter(Habitat == "Preferred")
@@ -112,25 +117,40 @@ summary(hab_lm)
 
 #lm values for each zone
 #Organising all lm values into a dataframe
-lm_vals0 <- hab %>% 
+lm_vals_hab <- hab %>% 
   group_by(ZONE) %>% 
   nest() %>% 
   mutate(model = map(data, ~lm(Proportion ~ Year, data = .) %>% tidy)) %>% 
   unnest(model) %>% 
   filter(term == 'Year')
 
-## GDD --
+#Organising all lm values into a dataframe
+rsquare_hab <- hab %>% 
+  group_by(ZONE) %>% 
+  nest() %>% 
+  mutate(model = map(data, ~lm(Proportion ~ Year, data = .) %>% glance)) %>% 
+  unnest(model) %>% 
+  select(ZONE, data, r.squared, adj.r.squared)
+
+##Merge data frames
+slopes_hab <- full_join(lm_vals_hab %>% select(-data), rsquare_hab %>% select(-data)) %>% 
+  mutate(Y_var = "Preferred Habitat")
+
+
+
+
+
+
+## GDD ----
 load("GDD.RData")
-#Should depth be restriced to <400 or <200 (note to self change code to restrict depth in GDD if I haven't)
-GDD <- GDD %>% filter(Habitat == "Preferred")
 
 ##Creating a saturated model
-gdd_lm <- lm(sGDD ~ ZONE*Year, hab)
+gdd_lm <- lm(sGDD ~ ZONE*Year, GDD)
 summary(gdd_lm)
 
 #lm values for each zone
 #Organising all lm values into a dataframe
-lm_vals0 <- gdd %>% 
+lm_vals_gdd <- GDD %>% 
   group_by(ZONE) %>% 
   nest() %>% 
   mutate(model = map(data, ~lm(sGDD ~ Year, data = .) %>% tidy)) %>% 
@@ -138,16 +158,26 @@ lm_vals0 <- gdd %>%
   filter(term == 'Year')
 
 
+#Organising all lm values into a dataframe
+rsquare_gdd <- GDD %>% 
+  group_by(ZONE) %>% 
+  nest() %>% 
+  mutate(model = map(data, ~lm(sGDD ~ Year, data = .) %>% glance)) %>% 
+  unnest(model) %>% 
+  select(ZONE, data, r.squared, adj.r.squared)
 
+##Merge data frames
+slopes_gdd <- full_join(lm_vals_gdd %>% select(-data), rsquare_gdd %>% select(-data))%>% 
+  mutate(Y_var = "GDD")
 
+#Export data frames
 
+lm_output <- rbind(slopes_temp, slopes_hab, slopes_gdd) %>% mutate(Significance = ifelse(p.value <= 0.001,"***",ifelse(
+                                                                                         p.value <= 0.01,"**", ifelse(
+                                                                                         p.value <= 0.05,"*", "Not Sig"))))
 
-
-
-
-
-
-
+                                                                                    
+fwrite(lm_output, file = "output/Stat_lmtables.csv", row.names = FALSE)
 
 ###What we did in our meeting
 #Linear model
@@ -180,7 +210,7 @@ for(s in sig){
 
 
 
-# ##Testing summer temperature changes ----
+# ##Testing summer temperature changes 
 # #ANOVA for each zones
 # for(z in zones){
 #   nova <- aov(Summer_AVG ~ Year, data = temp %>% filter(ZONE == z))
