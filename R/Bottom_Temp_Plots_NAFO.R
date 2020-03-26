@@ -2,10 +2,11 @@ library(tidyverse)
 library(sf) 
 library(data.table)
 library(viridis)
+library(ggplot2)
 
 library(sp)
 
-library(ggplot2)
+
 library(here)
 
 library(rnaturalearth)
@@ -21,6 +22,8 @@ load("data/BNAM_T.RData")#the Rdata file here needs to be fixed since it doesn't
 avg_btmp = temp %>% select("Year", "ZONE", "Winter_AVG", "Summer_AVG", "Annual_AVG") %>% group_by(Year, ZONE) %>% 
   summarise_all(list(mean))
 
+
+
 ###Total Bottom Temperature trend by NAFO zone for each season
 #Melting data into long format for implementing season as group
 Avg_btm_temp_2 = melt.data.table(as.data.table(avg_btmp), id.vars = c("Year","ZONE")) %>% 
@@ -28,16 +31,16 @@ Avg_btm_temp_2 = melt.data.table(as.data.table(avg_btmp), id.vars = c("Year","ZO
 
 
 
-ggplot(Avg_btm_temp_2, aes(x = Year, y = Temperature,  colour = Season )) + 
-  geom_line() + facet_wrap(~ZONE, scales = "free") + 
-  geom_smooth(method = "lm", aes(colour = Season)) + theme_bw() + theme(axis.line = element_line(colour = "black"),
+ggplot(Avg_btm_temp_2 %>% filter(Season == 'Annual_AVG'), aes(x = Year, y = Temperature)) + 
+  geom_point() + ylim(2.5,3.5)+
+  geom_smooth(aes(colour = Season)) + theme_bw() + theme(axis.line = element_line(colour = "black"),
                                                                         panel.grid.major = element_blank(),
                                                                         panel.grid.minor = element_blank(),
                                                                         panel.background = element_blank()) +
   ggtitle("All Seasons Average Temperature")
 
 ggplot(Avg_btm_temp_2 %>% filter(Season == 'Annual_AVG'), aes(x = Year, y = Temperature)) + 
-  geom_line() + facet_wrap(~ZONE, scales = "free") + 
+  geom_line() + facet_wrap(~ZONE, scales = "free") + ylim(2.5,3.5)+
   geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
                                                   panel.grid.major = element_blank(),
                                                   panel.grid.minor = element_blank(),
@@ -98,9 +101,9 @@ p3 <- ggplot(filter(prop_hab, Habitat == "Preferred", !is.na(Stock), ZONE != "3M
         text = element_text(size=17), axis.text.x = element_text(color = "grey20", size = 14, vjust = .5),
         axis.text.y = element_text(color = "grey20", size = 14, vjust = .5))+
   guides(color = guide_legend(reverse = TRUE))+
-  labs(colour = "NAFO\nDivision", y = "Proportion of Preferred Habitat\n", x = "\nYear");p3
+  labs(colour = "NAFO\nDivision", y = "Proportion of Preferred Habitat\n", x = "Year");p3
 
-ggsave("output2/hab_EEZ_3-15.tiff",p3,dpi=300,width=8,height=6,units="in")
+ggsave("output2/pref-hab.png",p3,dpi=300,width=8,height=6,units="in")
 
 ####
 
