@@ -27,6 +27,12 @@ NAFO <- st_read("data/Divisions.shp")%>%
   select(ZONE,geometry)%>%
   filter(!is.na(ZONE), grepl("[345]", ZONE)) 
   
+#read in EEZ shape file
+EEZ <- st_read("data/Canada_EEZ.shp")%>%
+  st_transform(latlong)%>%
+  select(EEZ, geometry)
+#cropping NAFO divisions by EEZ, by using st_intersects to keep only the area that is in both
+NAFO <- NAFO %>% st_intersection(EEZ)
 
 ## Example Bottom Temperature Maps ----
 

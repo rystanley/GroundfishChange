@@ -19,52 +19,46 @@ load("data/BNAM_T.RData")#the Rdata file here needs to be fixed since it doesn't
 
 ## Plotting Average Bottom Temperature ----
 
-avg_btmp = temp %>% select("Year", "ZONE", "Winter_AVG", "Summer_AVG", "Annual_AVG") %>% group_by(Year, ZONE) %>% 
+avg_btmp = temp %>% select("Year", "ZONE", "Depth", "Winter_AVG", "Summer_AVG", "Annual_AVG") %>% group_by(Year, ZONE) %>% 
   summarise_all(list(mean))
 
 
 
 ###Total Bottom Temperature trend by NAFO zone for each season
 #Melting data into long format for implementing season as group
-Avg_btm_temp_2 = melt.data.table(as.data.table(avg_btmp), id.vars = c("Year","ZONE")) %>% 
+Avg_btm_temp_2 = melt.data.table(as.data.table(avg_btmp), id.vars = c("Year","ZONE", "Depth")) %>% 
   rename(Season = variable, Temperature = value) 
 
 
 
-ggplot(Avg_btm_temp_2 %>% filter(Season == 'Annual_AVG'), aes(x = Year, y = Temperature)) + 
-  geom_point() + ylim(2.5,3.5)+
-  geom_smooth(aes(colour = Season)) + theme_bw() + theme(axis.line = element_line(colour = "black"),
-                                                                        panel.grid.major = element_blank(),
-                                                                        panel.grid.minor = element_blank(),
-                                                                        panel.background = element_blank()) +
-  ggtitle("All Seasons Average Temperature")
 
-ggplot(Avg_btm_temp_2 %>% filter(Season == 'Annual_AVG'), aes(x = Year, y = Temperature)) + 
-  geom_line() + facet_wrap(~ZONE, scales = "free") + ylim(2.5,3.5)+
-  geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
-                                                  panel.grid.major = element_blank(),
-                                                  panel.grid.minor = element_blank(),
-                                                  panel.background = element_blank()) +
-  ggtitle("Annual Avereage Temperature")
-
-ggplot(Avg_btm_temp_2 %>% filter(Season == 'Winter_AVG'), aes(x = Year, y = Temperature)) + 
-  geom_line() + facet_wrap(~ZONE, scales = "free") + 
-  geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
-                                                  panel.grid.major = element_blank(),
-                                                  panel.grid.minor = element_blank(),
-                                                  panel.background = element_blank())+
-  ggtitle("Winter Avereage Temperature")
+Avg_btm_temp_2$Stock =  ifelse(grepl("4T|4S|4R", Avg_btm_temp_2$ZONE), "GSL",
+                         ifelse(grepl("4X|4W|4Vs|4Vn", Avg_btm_temp_2$ZONE), "SS", 
+                                ifelse(grepl("3Pn|3Ps|3O|3N|3L|3M|3K", Avg_btm_temp_2$ZONE), "NF", NA)))
 
 
-s1 <- ggplot(Avg_btm_temp_2 %>% filter(Season == 'Summer_AVG'), aes(x = Year, y = Temperature)) + 
-  geom_line() + facet_wrap(~ZONE, scales = "free") + 
-  geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
-                                                  panel.grid.major = element_blank(),
-                                                  panel.grid.minor = element_blank(),
-                                                  panel.background = element_blank()) +
-  ggtitle("Summer Avereage Temperature");s1
+Avg_btm_temp_2$Stock <- factor(Avg_btm_temp_2$Stock, levels=c("SS", "GSL", "NF"))
 
-ggsave("output/Summer_average_temp-zone.png",s1,dpi=600,width=8,height=6,units="in")
+p1 <- ggplot(filter(Avg_btm_temp_2, Season == "Annual_AVG", !is.na(Stock)), 
+             aes(x = Year, y = Temperature,  colour = ZONE))+ 
+  geom_line()+ 
+  geom_smooth(method = "lm", aes(colour = ZONE), se = FALSE)+
+  facet_wrap(~Stock)+
+  scale_colour_viridis(discrete = TRUE, option = "C")+ 
+  theme_bw()+
+  theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), panel.background = element_blank(),
+        legend.box.background = element_rect(colour = "black"), legend.background = element_blank(),
+        strip.background =element_rect(fill="#f0f0f0"),
+        text = element_text(size=17), axis.text.x = element_text(color = "grey20", size = 14, vjust = .5),
+        axis.text.y = element_text(color = "grey20", size = 14, vjust = .5))+
+  guides(color = guide_legend(reverse = TRUE))+
+  labs(colour = "NAFO\nDivision", y = "Annual Avereage Temeprature (C)\n", x = "Year");p1
+
+ggsave("output2/annual_temp.png",p1,dpi=300,width=8,height=6,units="in")
+
+
+
 
 
 ## Habitat Plots ----
@@ -87,7 +81,7 @@ prop_hab$Stock =  ifelse(grepl("4T|4S|4R", prop_hab$ZONE), "GSL",
 
 prop_hab$Stock <- factor(prop_hab$Stock, levels=c("SS", "GSL", "NF"))
 
-p3 <- ggplot(filter(prop_hab, Habitat == "Preferred", !is.na(Stock), ZONE != "3M"), 
+p2 <- ggplot(filter(prop_hab, Habitat == "Preferred", !is.na(Stock), ZONE != "3M"), 
        aes(x = Year, y = Proportion,  colour = ZONE))+ 
   geom_line()+ 
   geom_smooth(method = "lm", aes(colour = ZONE), se = FALSE)+
@@ -101,9 +95,9 @@ p3 <- ggplot(filter(prop_hab, Habitat == "Preferred", !is.na(Stock), ZONE != "3M
         text = element_text(size=17), axis.text.x = element_text(color = "grey20", size = 14, vjust = .5),
         axis.text.y = element_text(color = "grey20", size = 14, vjust = .5))+
   guides(color = guide_legend(reverse = TRUE))+
-  labs(colour = "NAFO\nDivision", y = "Proportion of Preferred Habitat\n", x = "Year");p3
+  labs(colour = "NAFO\nDivision", y = "Proportion of Preferred Habitat\n", x = "Year");p2
 
-ggsave("output2/pref-hab.png",p3,dpi=300,width=8,height=6,units="in")
+ggsave("output2/pref-hab.png",p2,dpi=300,width=8,height=6,units="in")
 
 ####
 
@@ -140,7 +134,7 @@ GDD$Stock = ifelse(grepl("4T|4S|4R", GDD$ZONE), "GSL",
 
 GDD$Stock <- factor(GDD$Stock, levels=c("SS", "GSL", "NF"))
 
-p4 <- ggplot(GDD %>% filter(ZONE != "3M"), aes(x = Year, y = sGDD,  colour = ZONE))+ 
+p3 <- ggplot(GDD %>% filter(ZONE != "3M"), aes(x = Year, y = sGDD,  colour = ZONE))+ 
   geom_line()+ 
   geom_smooth(method = "lm", aes(colour = ZONE), se = FALSE)+
   facet_wrap(~Stock)+
@@ -153,9 +147,9 @@ p4 <- ggplot(GDD %>% filter(ZONE != "3M"), aes(x = Year, y = sGDD,  colour = ZON
         text = element_text(size=17), axis.text.x = element_text(color = "grey20", size = 14, vjust = .5),
         axis.text.y = element_text(color = "grey20", size = 14, vjust = .5))+#a6bddb  #f0f0f0
   guides(color = guide_legend(reverse = TRUE))+
-  labs(colour = "NAFO\nDivision", y = "GDD\n", x = "\nYear");p4
+  labs(colour = "NAFO\nDivision", y = "GDD\n", x = "\nYear");p3
 
-ggsave("output/Standardized_GDD.tiff",p4,dpi=600,width=8,height=6,units="in")
+ggsave("output/GDD.tiff",p3,dpi=300,width=8,height=6,units="in")
 
 #########
 

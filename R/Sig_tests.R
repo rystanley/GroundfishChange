@@ -10,9 +10,10 @@ library(mapdata)
 ## Avereage Bottom Temperatures ----
 load("data/BNAM_Step2.RData")
 
+#Probably get rid of depth restrictions, because we just want to show which areas are icnreaseing the most, not necessarily habitable areas, since we can't plot all areas wihin this depth range
 btmp$ZONE <- factor(btmp$ZONE)
 mTemp <- btmp %>% group_by(Year, ZONE) %>%  
-         filter(Depth <= 400)%>% 
+         filter(Depth <= 400, Depth >= 25)%>% 
          summarise(Temp = mean(Annual_AVG))
 
 

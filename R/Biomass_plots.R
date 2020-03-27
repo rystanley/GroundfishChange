@@ -55,25 +55,25 @@ Annual.Mean<-strata.mean%>% group_by(YEAR)%>%
 
 Annual.Mean <- rename(Annual.Mean, Year = YEAR)
 
-p2 <- ggplot(Annual.Mean, mapping = aes(x = Year, y = Strat.bm))+geom_smooth(colour = "black")+geom_point()+
+bm <- ggplot(Annual.Mean, mapping = aes(x = Year, y = Strat.bm))+geom_smooth(colour = "black")+geom_point()+
   theme_bw()+ scale_y_continuous(limits = c(0,4))+ scale_x_continuous()+
   theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), panel.background = element_blank(),
         text = element_text(size=17), axis.text.x = element_text(color = "grey20", size = 14, vjust = .5),
         axis.text.y = element_text(color = "grey20", size = 14, vjust = .5))+
-  labs(x = "\nYear", y = "q-corrected Stratified Mean Wt per tow (kg)\n");p2
+  labs(x = "\nYear", y = "q-corrected Stratified Mean Wt per tow (kg)\n");bm
 
-ggsave("output/bm_time.tiff",p2,dpi=600,width=8,height=6,units="in")
+ggsave("output/biomass.tiff",bm,dpi=300,width=8,height=6,units="in")
 
-powerpoint <- ggplot(Annual.Mean, mapping = aes(x = Year, y = Strat.bm))+geom_smooth(colour = "black")+geom_point()+
-  theme_bw()+ scale_y_continuous(limits = c(0,4))+ scale_x_continuous()+
+abd <- ggplot(Annual.Mean, mapping = aes(x = Year, y = Strat.abd))+geom_smooth(colour = "black")+geom_point()+
+  theme_bw()+ scale_x_continuous()+
   theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), panel.background = element_blank(),
         text = element_text(size=17), axis.text.x = element_text(color = "grey20", size = 14, vjust = .5),
         axis.text.y = element_text(color = "grey20", size = 14, vjust = .5))+
-  labs(x = "\nYear", y = "Mean Wt per tow (kg)\n");powerpoint
+  labs(x = "\nYear", y = "q-corrected Stratified Mean Abundance per tow\n");abd
 
-ggsave("output/bm_time_pp.tiff",powerpoint,dpi=600,width=8,height=6,units="in")
+ggsave("output/abundance.tiff",abd,dpi=300,width=8,height=6,units="in")
 
 
 

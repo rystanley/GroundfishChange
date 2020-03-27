@@ -49,7 +49,7 @@ e1 <-  ggplot(temp_ecdf, aes(Temp, colour = Group, linetype= Group)) + stat_ecdf
         axis.text.y = element_text(color = "grey20", size = 14, vjust = .5))+
   labs(x= expression(paste("Temperature ",degree,"C",sep="")), y="Proportion\n",col="", linetype = "");e1
 
-ggsave("output/temp_ecdf.tiff",e1,dpi=600,width=8,height=6,units="in")
+ggsave("output2/temp_ecdf.tiff",e1,dpi=300,width=8,height=6,units="in")
 
 
 ## ECDF Depth
@@ -66,13 +66,13 @@ e2 <-  ggplot(depth_ecdf, aes(Depth, colour = Group, linetype= Group)) + stat_ec
           axis.text.y = element_text(color = "grey20", size = 14, vjust = .5))+
     labs(x="Depth (m)",y="Proportion\n",col="", linetype = "");e2
 
-ggsave("output/depth_ecdf.tiff",e2,dpi=600,width=8,height=6,units="in")
+ggsave("output2/depth_ecdf.tiff",e2,dpi=300,width=8,height=6,units="in")
 
 ##Merged ecdfs faceted
 merged_ecdf <- rbind(temp_ecdf %>% mutate(Facet = "Temperature"), depth_ecdf %>% mutate(Facet = "Depth (M)"))
 
 ggplot(merged_ecdf, aes(colour = Group, linetype= Group)) + stat_ecdf(geom = "step", lwd=1.7, aes(Temp))+
-  stat_ecdf(geom = "step", lwd=1.7, aes(Depth))+ facet_wrap(~Facet, scales = "free_x")+
+  stat_ecdf(geom = "step", lwd=1.7, aes(Depth))+ facet_wrap(~Facet, scales = "free")+ 
   geom_vline(xintercept=quantile(depth_ecdf %>% filter(Group == "Halibut") %>%  .$Depth, c(.05,.95)),lty=1,col="black")+ 
   geom_vline(xintercept=quantile(depth_ecdf %>% filter(Group == "Survey") %>%  .$Depth, c(.05,.95)),lty=2,col="black")+
   theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(), 
@@ -99,7 +99,7 @@ p1 = ggplot() +
         legend.position = c(.9, 0.45), legend.box.background = element_rect(colour = "black"), legend.background = element_blank(), axis.text.y = label = c("one", "two"))+
   labs(y = "Density of Juvenile Habitat");p1
 
-ggsave("output/density_temp.pdf",p1,dpi=600,width=8,height=6,units="in")
+ggsave("output2/density_temp.pdf",p1,dpi=300,width=8,height=6,units="in")
 
 
 ## Depth 
@@ -118,7 +118,7 @@ p3 = ggplot(filter(abun_depth, Season == "SUMMER", !is.na(Depth)),
         legend.background = element_blank())+ 
   labs(y = "Density of Juvenile Habitat");p3
 
-ggsave("output/density_depth.pdf",p3,dpi=600,width=8,height=6,units="in")
+ggsave("output2/density_depth.pdf",p3,dpi=300,width=8,height=6,units="in")
 
 
  
