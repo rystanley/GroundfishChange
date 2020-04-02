@@ -49,7 +49,7 @@ e1 <-  ggplot(temp_ecdf, aes(Temp, colour = Group, linetype= Group)) + stat_ecdf
         axis.text.y = element_text(color = "grey20", size = 14, vjust = .5))+
   labs(x= expression(paste("Temperature ",degree,"C",sep="")), y="Proportion\n",col="", linetype = "");e1
 
-ggsave("output2/temp_ecdf.tiff",e1,dpi=300,width=8,height=6,units="in")
+ggsave("output2/temp_ecdf.png",e1,dpi=300,width=8,height=6,units="in")
 
 
 ## ECDF Depth
@@ -66,7 +66,7 @@ e2 <-  ggplot(depth_ecdf, aes(Depth, colour = Group, linetype= Group)) + stat_ec
           axis.text.y = element_text(color = "grey20", size = 14, vjust = .5))+
     labs(x="Depth (m)",y="Proportion\n",col="", linetype = "");e2
 
-ggsave("output2/depth_ecdf.tiff",e2,dpi=300,width=8,height=6,units="in")
+ggsave("output2/depth_ecdf.png",e2,dpi=300,width=8,height=6,units="in")
 
 ##Merged ecdfs faceted
 merged_ecdf <- rbind(temp_ecdf %>% mutate(Facet = "Temperature"), depth_ecdf %>% mutate(Facet = "Depth (M)"))

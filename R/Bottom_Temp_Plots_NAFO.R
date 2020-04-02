@@ -60,7 +60,6 @@ ggsave("output2/annual_temp.png",p1,dpi=300,width=8,height=6,units="in")
 
 
 
-
 ## Habitat Plots ----
 load("data/BNAM_hab.RData")
 
@@ -77,7 +76,8 @@ load("data/BNAM_hab.RData")
 prop_hab$Stock =  ifelse(grepl("4T|4S|4R", prop_hab$ZONE), "GSL",
                          ifelse(grepl("4X|4W|4Vs|4Vn", prop_hab$ZONE), "SS", 
                                 ifelse(grepl("3Pn|3Ps|3O|3N|3L|3M|3K", prop_hab$ZONE), "NF", NA)))
-
+#Change to percentage
+prop_hab$Proportion = prop_hab$Proportion*100
 
 prop_hab$Stock <- factor(prop_hab$Stock, levels=c("SS", "GSL", "NF"))
 
@@ -90,14 +90,16 @@ p2 <- ggplot(filter(prop_hab, Habitat == "Preferred", !is.na(Stock), ZONE != "3M
   theme_bw()+
   theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), panel.background = element_blank(),
+        axis.title.x = element_text(margin = margin(t = 10)), 
+        axis.title.y = element_text(margin = margin(r = 10)),
         legend.box.background = element_rect(colour = "black"), legend.background = element_blank(),
         strip.background =element_rect(fill="#f0f0f0"),
         text = element_text(size=17), axis.text.x = element_text(color = "grey20", size = 14, vjust = .5),
         axis.text.y = element_text(color = "grey20", size = 14, vjust = .5))+
   guides(color = guide_legend(reverse = TRUE))+
-  labs(colour = "NAFO\nDivision", y = "Proportion of Preferred Habitat\n", x = "Year");p2
+  labs(colour = "NAFO\nDivision", y = "Preferred Habitat (%)", x = "Year");p2
 
-ggsave("output2/pref-hab.png",p2,dpi=300,width=8,height=6,units="in")
+ggsave("output2/pref-hab_percent.png",p2,dpi=300,width=8,height=6,units="in")
 
 ####
 
@@ -117,14 +119,6 @@ ggsave("output2/pref-hab.png",p2,dpi=300,width=8,height=6,units="in")
 load("data/GDD.RData")
 #Plot of the average GDD for each NAFO zone by season
 
-# GDD Estimate 1 (Scaled mean GDD of temps >3   x   n(temps > 3)   /   total obs in zone)
-ggplot(GDD, aes(x = Year, y = sGDD)) + 
-  geom_line() + facet_wrap(~ZONE, scales = "free") + 
-  geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
-                                                  panel.grid.major = element_blank(),
-                                                  panel.grid.minor = element_blank(),
-                                                  panel.background = element_blank()) +
-  ggtitle("Scaled Annual Average GDD per Grid Cell")
 
 ## Second plot to transfer over
 
@@ -149,7 +143,7 @@ p3 <- ggplot(GDD %>% filter(ZONE != "3M"), aes(x = Year, y = sGDD,  colour = ZON
   guides(color = guide_legend(reverse = TRUE))+
   labs(colour = "NAFO\nDivision", y = "GDD\n", x = "\nYear");p3
 
-ggsave("output/GDD.tiff",p3,dpi=300,width=8,height=6,units="in")
+ggsave("output2/GDD.png",p3,dpi=300,width=8,height=6,units="in")
 
 #########
 

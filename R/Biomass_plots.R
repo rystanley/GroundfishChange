@@ -63,7 +63,7 @@ bm <- ggplot(Annual.Mean, mapping = aes(x = Year, y = Strat.bm))+geom_smooth(col
         axis.text.y = element_text(color = "grey20", size = 14, vjust = .5))+
   labs(x = "\nYear", y = "q-corrected Stratified Mean Wt per tow (kg)\n");bm
 
-ggsave("output/biomass.tiff",bm,dpi=300,width=8,height=6,units="in")
+ggsave("output2/biomass.png",bm,dpi=300,width=8,height=6,units="in")
 
 abd <- ggplot(Annual.Mean, mapping = aes(x = Year, y = Strat.abd))+geom_smooth(colour = "black")+geom_point()+
   theme_bw()+ scale_x_continuous()+
@@ -73,7 +73,7 @@ abd <- ggplot(Annual.Mean, mapping = aes(x = Year, y = Strat.abd))+geom_smooth(c
         axis.text.y = element_text(color = "grey20", size = 14, vjust = .5))+
   labs(x = "\nYear", y = "q-corrected Stratified Mean Abundance per tow\n");abd
 
-ggsave("output/abundance.tiff",abd,dpi=300,width=8,height=6,units="in")
+ggsave("output2/abundance.png",abd,dpi=300,width=8,height=6,units="in")
 
 
 

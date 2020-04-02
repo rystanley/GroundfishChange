@@ -1,9 +1,11 @@
 
 library(tidyverse)
 library(data.table)
+library(broom)
+
 
 library(car)
-library(broom)
+
 library(marmap)
 library(mapdata)
 
@@ -13,7 +15,6 @@ load("data/BNAM_Step2.RData")
 #Probably get rid of depth restrictions, because we just want to show which areas are icnreaseing the most, not necessarily habitable areas, since we can't plot all areas wihin this depth range
 btmp$ZONE <- factor(btmp$ZONE)
 mTemp <- btmp %>% group_by(Year, ZONE) %>%  
-         filter(Depth <= 400, Depth >= 25)%>% 
          summarise(Temp = mean(Annual_AVG))
 
 
@@ -32,7 +33,7 @@ zones <- as.character(unique(mTemp$ZONE))
 #}
 
 
-#Organising all lm values into a dataframe
+#Organising all lm values into a dataframe (sometimes this doesn't work and soemtimes it does... very annoying)
 lm_vals_temp <- mTemp %>% 
               group_by(ZONE) %>% 
               nest() %>% 
@@ -50,7 +51,7 @@ rsquare_temp <- mTemp %>%
 
 ##Merge data frames
 slopes_temp <- full_join(lm_vals_temp %>% select(-data), rsquare_temp %>% select(-data))%>% 
-  mutate(Y_var = "Annual Avg Temp")
+  mutate(Y_var = "Annual Avg Temp") %>% filter(ZONE != "3M")
 
 
 
@@ -110,7 +111,7 @@ ggsave("output/map_slopes.tiff",p,dpi=300,width=12,height=8,units="in")
 load("data/BNAM_hab.RData")
 #This is depth between 25-200m
 
-hab <- prop_hab %>% filter(Habitat == "Preferred")
+hab <- prop_hab %>% filter(Habitat == "Preferred") %>% mutate(Proportion = Proportion*100)
 
 ##Creating a saturated model
 hab_lm <- lm(Proportion ~ ZONE*Year, hab)
@@ -178,7 +179,7 @@ lm_output <- rbind(slopes_temp, slopes_hab, slopes_gdd) %>% mutate(Significance 
                                                                                          p.value <= 0.05,"*", "Not Sig"))))
 
                                                                                     
-fwrite(lm_output, file = "output/Stat_lmtables.csv", row.names = FALSE)
+fwrite(lm_output, file = "output/Stat_lmtables_new.csv", row.names = FALSE)
 
 ###What we did in our meeting
 #Linear model
