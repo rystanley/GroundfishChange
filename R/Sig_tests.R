@@ -4,13 +4,15 @@ library(data.table)
 library(broom)
 
 
-library(car)
 
-library(marmap)
-library(mapdata)
+#for the map (but cause some funtuions to not work)
+#library(marmap)
+#library(mapdata)
 
 ## Avereage Bottom Temperatures ----
 load("data/BNAM_Step2.RData")
+
+
 
 #Probably get rid of depth restrictions, because we just want to show which areas are icnreaseing the most, not necessarily habitable areas, since we can't plot all areas wihin this depth range
 btmp$ZONE <- factor(btmp$ZONE)
@@ -54,58 +56,6 @@ slopes_temp <- full_join(lm_vals_temp %>% select(-data), rsquare_temp %>% select
   mutate(Y_var = "Annual Avg Temp") %>% filter(ZONE != "3M")
 
 
-
-
-
-##Map for Presentation (attempt 1)
-#get mapping baselayers 
-load("data/BNAM_map.RData")
-Canada <- ne_states(country = "Canada",returnclass = "sf")%>%
-  select(latitude,longitude,geonunit,geometry)%>%
-  st_union()%>% #group provinces + territories
-  st_as_sf()
-
-USA <- ne_states(country = "United States of America",returnclass = "sf")%>%
-  st_transform(latlong)%>%
-  filter(region%in%c("Northeast","South"))%>%
-  select(latitude,longitude,geonunit,geometry)%>%
-  st_union()%>% #group states
-  st_as_sf()
-
-
-NAFO <- st_read("data/Divisions.shp")%>%
-  st_transform(latlong)%>%
-  select(ZONE,geometry)%>%
-  filter(!is.na(ZONE), grepl("[345]", ZONE)) 
-
-#merge data frames with NAFO regions and slopes for temperature change
-NAFO_slopes <- full_join(slopes, NAFO %>% filter(grepl("[345]", ZONE))) %>% select(ZONE, geometry, estimate) 
-
-p <- ggplot(NAFO_slopes)+
-        geom_sf(aes(fill = estimate, geometry = geometry))+
-        scale_fill_viridis_c(option = "D",
-                             name=expression(paste("Rate of Change (", degree,"C per year)")))+
-        geom_sf_text(data=NAFO,aes(label=ZONE),colour="red", size = 7 )+
-        geom_sf(data = Canada)+
-        geom_sf(data = USA)+
-        coord_sf(xlim = c(-42, -71.7), ylim = c(39, 52), expand = FALSE) +
-        theme_bw()+
-        theme(legend.position = "bottom",
-              legend.text = element_text(angle=-90, vjust = .6),
-              text = element_text(size=18), 
-              axis.text.x = element_text(color = "grey20", size = 12, vjust = .5),
-              axis.text.y = element_text(color = "grey20", size = 12, vjust = .5),
-              axis.title.x = element_text(margin = margin(t = 10)), 
-              axis.title.y = element_text(margin = margin(b = 10)),
-              panel.grid.major = element_blank(), 
-              panel.grid.minor = element_blank(),
-              panel.background = element_rect(fill = "white", colour = "black"),
-              plot.background = element_rect(colour = "white"),
-              strip.background = element_rect(colour = "black", fill = "white"))+
-        labs(x=expression(paste("Longitude ",degree,"W",sep="")),
-             y=expression(paste("Latitude ",degree,"N",sep="")));p
-
-ggsave("output/map_slopes.tiff",p,dpi=300,width=12,height=8,units="in")
 
 ## Preferred Habitat ----
 load("data/BNAM_hab.RData")
@@ -178,55 +128,73 @@ lm_output <- rbind(slopes_temp, slopes_hab, slopes_gdd) %>% mutate(Significance 
                                                                                          p.value <= 0.01,"**", ifelse(
                                                                                          p.value <= 0.05,"*", "Not Sig"))))
 
-                                                                                    
-fwrite(lm_output, file = "output/Stat_lmtables_new.csv", row.names = FALSE)
+lm_outputr <- lm_output %>% mutate_at(vars(3:8), funs(round(., 3)))                                                                               
+fwrite(lm_outputr, file = "output/Stat_lmtables_new.csv", row.names = FALSE)
 
-###What we did in our meeting
-#Linear model
-btmp$ZONE <- factor(btmp$ZONE)
-str(btmp)
-mylm <- lm(Annual_AVG~ ZONE*Year, btmp)
-summary(mylm)
-mylm2<-lm(Annual_AVG~ ZONE+ZONE:Year, btmp)
-summary(mylm2)
+## By region (not sig) ----
 
 
-for(z in zones){
-  nova <- aov(Annual_AVG ~ Year, data = btmp %>% filter(ZONE == z))
-  nova <- summary(nova)
-  print(c(z, nova))
-}
+btmp$Region =  ifelse(grepl("4T|4S|4R", btmp$ZONE), "GSL",
+                      ifelse(grepl("4X|4W|4Vs|4Vn", btmp$ZONE), "SS", 
+                             ifelse(grepl("3Pn|3Ps|3O|3N|3L|3K", btmp$ZONE), "NF", NA)))
 
+btmp$Region <- factor(btmp$Region)
+reg_temp <- btmp %>% group_by(Year, Region) %>%  
+  summarise(Temp = mean(Annual_AVG))
 
-lm4x <- lm(Annual_AVG ~ Year, data = btmp %>% filter(ZONE == "4X"))
-summary(lm4x)
-aov(lm4x)
-                       #Tukeys test for each significant zone
-sig <- zones[!zones %in% c("3Pn", "3M")]
-for(s in sig){
-  nova <- aov(Annual_AVG ~ Year, data = temp %>% filter(ZONE == s))
-  tuk <- TukeyHSD(nova, "Year")
-  print(c(s, tuk))
-}
+##Creating a saturated model
+temp_lm <- lm(Temp ~ Region*Year, reg_temp)
+summary(temp_lm)
 
 
 
+##Map for Presentation (attempt 1) ----
+#get mapping baselayers 
+load("data/BNAM_map.RData")
+Canada <- ne_states(country = "Canada",returnclass = "sf")%>%
+  select(latitude,longitude,geonunit,geometry)%>%
+  st_union()%>% #group provinces + territories
+  st_as_sf()
 
-# ##Testing summer temperature changes 
-# #ANOVA for each zones
-# for(z in zones){
-#   nova <- aov(Summer_AVG ~ Year, data = temp %>% filter(ZONE == z))
-#   nova <- summary(nova)
-#   print(c(z, nova))
-# }
-# #Tukeys test for each significant zone
-# for(s in sig){
-#   nova <- aov(Summer_AVG ~ Year, data = temp %>% filter(ZONE == s))
-#   tuk <- TukeyHSD(nova, "Year")
-#   print(c(s, tuk))
-# }
+USA <- ne_states(country = "United States of America",returnclass = "sf")%>%
+  st_transform(latlong)%>%
+  filter(region%in%c("Northeast","South"))%>%
+  select(latitude,longitude,geonunit,geometry)%>%
+  st_union()%>% #group states
+  st_as_sf()
 
 
+NAFO <- st_read("data/Divisions.shp")%>%
+  st_transform(latlong)%>%
+  select(ZONE,geometry)%>%
+  filter(!is.na(ZONE), grepl("[345]", ZONE)) 
 
-#next try for summer temperature (or season based on survey data)
-#then test change in habitat suitability and GDD
+#merge data frames with NAFO regions and slopes for temperature change
+NAFO_slopes <- full_join(slopes, NAFO %>% filter(grepl("[345]", ZONE))) %>% select(ZONE, geometry, estimate) 
+
+p <- ggplot(NAFO_slopes)+
+  geom_sf(aes(fill = estimate, geometry = geometry))+
+  scale_fill_viridis_c(option = "D",
+                       name=expression(paste("Rate of Change (", degree,"C per year)")))+
+  geom_sf_text(data=NAFO,aes(label=ZONE),colour="red", size = 7 )+
+  geom_sf(data = Canada)+
+  geom_sf(data = USA)+
+  coord_sf(xlim = c(-42, -71.7), ylim = c(39, 52), expand = FALSE) +
+  theme_bw()+
+  theme(legend.position = "bottom",
+        legend.text = element_text(angle=-90, vjust = .6),
+        text = element_text(size=18), 
+        axis.text.x = element_text(color = "grey20", size = 12, vjust = .5),
+        axis.text.y = element_text(color = "grey20", size = 12, vjust = .5),
+        axis.title.x = element_text(margin = margin(t = 10)), 
+        axis.title.y = element_text(margin = margin(b = 10)),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(fill = "white", colour = "black"),
+        plot.background = element_rect(colour = "white"),
+        strip.background = element_rect(colour = "black", fill = "white"))+
+  labs(x=expression(paste("Longitude ",degree,"W",sep="")),
+       y=expression(paste("Latitude ",degree,"N",sep="")));p
+
+ggsave("output/map_slopes.tiff",p,dpi=300,width=12,height=8,units="in")
+

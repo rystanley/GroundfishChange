@@ -1,5 +1,10 @@
 library(data.table)
 library(tidyverse)
+library(patchwork)
+
+
+
+
 
 #strattrawlableunits <- fread("data/strattrawlableunits.txt")
 #rv_data <- fread("data/Halibut_2018_RV.csv")
@@ -55,8 +60,10 @@ Annual.Mean<-strata.mean%>% group_by(YEAR)%>%
 
 Annual.Mean <- rename(Annual.Mean, Year = YEAR)
 
+
 bm <- ggplot(Annual.Mean, mapping = aes(x = Year, y = Strat.bm))+geom_smooth(colour = "black")+geom_point()+
   theme_bw()+ scale_y_continuous(limits = c(0,4))+ scale_x_continuous()+
+  geom_hline(yintercept=mean(Annual.Mean$Strat.bm), lty=2)+
   theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), panel.background = element_blank(),
         text = element_text(size=17), axis.text.x = element_text(color = "grey20", size = 14, vjust = .5),
@@ -66,7 +73,8 @@ bm <- ggplot(Annual.Mean, mapping = aes(x = Year, y = Strat.bm))+geom_smooth(col
 ggsave("output2/biomass.png",bm,dpi=300,width=8,height=6,units="in")
 
 abd <- ggplot(Annual.Mean, mapping = aes(x = Year, y = Strat.abd))+geom_smooth(colour = "black")+geom_point()+
-  theme_bw()+ scale_x_continuous()+
+  theme_bw()+ scale_x_continuous()+scale_y_continuous(limits = c(0,1))+
+  geom_hline(yintercept=mean(Annual.Mean$Strat.abd), lty=2)+
   theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), panel.background = element_blank(),
         text = element_text(size=17), axis.text.x = element_text(color = "grey20", size = 14, vjust = .5),
@@ -76,8 +84,35 @@ abd <- ggplot(Annual.Mean, mapping = aes(x = Year, y = Strat.abd))+geom_smooth(c
 ggsave("output2/abundance.png",abd,dpi=300,width=8,height=6,units="in")
 
 
+p1 = bm+labs(tag="A")
+p2 = abd+labs(tag="B")
 
-GDD <- filter(GDD, grepl("4X|4W|4Vs|4Vn", GDD$ZONE))
+merged_plots = p1 + p2 
+
+ggsave("output2/bm_abd.png",merged_plots,dpi=300,width=12,height=6,units="in")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Merge dataframe to polot against eachother
 
 bm_gdd <- merge(Annual.Mean, GDD %>%
@@ -102,7 +137,7 @@ ggsave("output/bm-gdd.tiff",p1,dpi=600,width=8,height=6,units="in")
 
 
 
-p3 <- ggplot(filter(prop_hab, Habitat == "Preferred", !is.na(Stock)), 
+p2 <- ggplot(filter(prop_hab, Habitat == "Preferred", !is.na(Stock)), 
              aes(x = Year, y = Proportion,  colour = ZONE))+ 
   geom_line()+ 
   geom_smooth(method = "lm", aes(colour = ZONE), se = FALSE)+
@@ -114,9 +149,9 @@ p3 <- ggplot(filter(prop_hab, Habitat == "Preferred", !is.na(Stock)),
         legend.box.background = element_rect(colour = "black"), legend.background = element_blank(),
         strip.background =element_rect(fill="#f0f0f0"))+#a6bddb  #f0f0f0
   guides(color = guide_legend(reverse = TRUE))+
-  labs(colour = "NAFO Zone", y = "Proportion of Preferred Habitat");p3
+  labs(colour = "NAFO Zone", y = "Proportion of Preferred Habitat");p2
 
-ggsave("output/Proportion_prefhab.pdf",p3,dpi=600,width=8,height=6,units="in")
+ggsave("output/Proportion_prefhab.pdf",p2,dpi=600,width=8,height=6,units="in")
 
 
 

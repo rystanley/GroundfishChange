@@ -5,6 +5,7 @@ library(tidyverse) #dplyr and tidyr
 library(ggplot2) #plotting
 library(data.table) #faster processing
 library(ggridges)
+library(patchwork)
 
 rv <- fread("data/Halibut_2018_RV.csv")
 
@@ -68,21 +69,18 @@ e2 <-  ggplot(depth_ecdf, aes(Depth, colour = Group, linetype= Group)) + stat_ec
 
 ggsave("output2/depth_ecdf.png",e2,dpi=300,width=8,height=6,units="in")
 
+
+
+
+
+
 ##Merged ecdfs faceted
-merged_ecdf <- rbind(temp_ecdf %>% mutate(Facet = "Temperature"), depth_ecdf %>% mutate(Facet = "Depth (M)"))
+p1 = e1+labs(tag="A")
+p2 = e2+labs(tag="B")
 
-ggplot(merged_ecdf, aes(colour = Group, linetype= Group)) + stat_ecdf(geom = "step", lwd=1.7, aes(Temp))+
-  stat_ecdf(geom = "step", lwd=1.7, aes(Depth))+ facet_wrap(~Facet, scales = "free")+ 
-  geom_vline(xintercept=quantile(depth_ecdf %>% filter(Group == "Halibut") %>%  .$Depth, c(.05,.95)),lty=1,col="black")+ 
-  geom_vline(xintercept=quantile(depth_ecdf %>% filter(Group == "Survey") %>%  .$Depth, c(.05,.95)),lty=2,col="black")+
-  theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(), panel.background = element_blank(),
-        legend.position = c(.9, 0.5), axis.title.x = element_text(margin = margin(t = 10)),
-        text = element_text(size=17), axis.text.x = element_text(color = "grey20", size = 14, vjust = .5),
-        axis.text.y = element_text(color = "grey20", size = 14, vjust = .5))+
-  labs(x="Depth (m)",y="Proportion\n",col="", linetype = "")
+e3 = p1 + p2 
 
-scale_x_continuous(breaks = seq(0, 1000, by = 50), limits = c(0,300), expand = c(0,10))
+ggsave("output2/ecdf_merged.png",e3,dpi=300,width=12,height=6,units="in")
 ## Abundance #code above changed so this is probably wont work properly
 p1 = ggplot() + 
   geom_density_ridges_gradient(filter(abun_temp, Season == "SUMMER"), 
