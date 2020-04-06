@@ -3,8 +3,6 @@ The effect of warming bottom temperature on the spatial distribution and recruit
 
 ![ ](/inst/Hippoglossus_hippoglossus2.jpg)
 
-Di
-
 Dalhousie University Honours dissertation by [Andrew N. Czich](https://github.com/aczich) 
 
 Supervisory Committee:
