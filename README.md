@@ -1,5 +1,5 @@
 # GroundfishChange
-The effect of warming bottom temperature on the spatial distribution and recruitment of Atlantic halibut (*Hippoglossus hippoglossus*)
+How climate change and habitat availability have factored into the expansion of Atlantic Halibut (*Hippoglossus hippoglossus*) in Atlantic Canada
 
 ![ ](/inst/Hippoglossus_hippoglossus2.jpg)
 
