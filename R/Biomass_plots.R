@@ -2,16 +2,10 @@ library(data.table)
 library(tidyverse)
 library(patchwork)
 
-
-
-
-
 #strattrawlableunits <- fread("data/strattrawlableunits.txt")
 #rv_data <- fread("data/Halibut_2018_RV.csv")
   JustHalibut <- fread("data/HalibutwithQcorrectedindices.csv")
   load("data/GDD.RData")
-  
-
 
 ##Summarise mean for biomass and abudnance terms
   strata.mean<-JustHalibut%>%
@@ -20,34 +14,31 @@ library(patchwork)
               stratabd.mean=mean(ABUNDANCE),stratQabd.mean=mean(QABUNDANCE))
 
 #Annual Weighted Mean by Strata, to get change for BOF,WSS and ESS
-
 library(SDMTools)
 
+  wt.mean <- function(x,wt) {
 
-wt.mean <- function(x,wt) {
-  
-  s = which(is.finite(x*wt)); wt = wt[s]; x = x[s] #remove NA info
-  
-  return( sum(wt * x)/sum(wt) ) #return the mean
-  
-}
+    s = which(is.finite(x*wt)); wt = wt[s]; x = x[s] #remove NA info
 
-wt.sd <- function(x,wt) {
-  
-  return( sqrt(wt.var(x,wt)) ) #return the standard deviation
-  
-}
+    return( sum(wt * x)/sum(wt) ) #return the mean
 
-wt.var <- function(x,wt) {
-  
-  s = which(is.finite(x + wt)); wt = wt[s]; x = x[s] #remove NA info
-  
-  xbar = wt.mean(x,wt) #get the weighted mean
-  
-  return( sum(wt *(x-xbar)^2)*(sum(wt)/(sum(wt)^2-sum(wt^2))) ) #return the variance
-  
-}
+  }
 
+  wt.sd <- function(x,wt) {
+
+    return( sqrt(wt.var(x,wt)) ) #return the standard deviation
+
+  }
+
+  wt.var <- function(x,wt) {
+
+    s = which(is.finite(x + wt)); wt = wt[s]; x = x[s] #remove NA info
+
+    xbar = wt.mean(x,wt) #get the weighted mean
+
+    return( sum(wt *(x-xbar)^2)*(sum(wt)/(sum(wt)^2-sum(wt^2))) ) #return the variance
+
+  }
 
 
 #For whole shelf improved  verison
@@ -60,7 +51,7 @@ Annual.Mean<-strata.mean%>% group_by(YEAR)%>%
 
 Annual.Mean <- rename(Annual.Mean, Year = YEAR)
 
-
+#Plotting q-corrected stratified mean biomass over time
 bm <- ggplot(Annual.Mean, mapping = aes(x = Year, y = Strat.bm))+geom_smooth(colour = "black")+geom_point()+
   theme_bw()+ scale_y_continuous(limits = c(0,4))+ scale_x_continuous()+
   geom_hline(yintercept=mean(Annual.Mean$Strat.bm), lty=2)+
@@ -72,6 +63,7 @@ bm <- ggplot(Annual.Mean, mapping = aes(x = Year, y = Strat.bm))+geom_smooth(col
 
 ggsave("output2/biomass.png",bm,dpi=300,width=8,height=6,units="in")
 
+#Plotting q-corrected stratified mean abundance over time
 abd <- ggplot(Annual.Mean, mapping = aes(x = Year, y = Strat.abd))+geom_smooth(colour = "black")+geom_point()+
   theme_bw()+ scale_x_continuous()+scale_y_continuous(limits = c(0,1))+
   geom_hline(yintercept=mean(Annual.Mean$Strat.abd), lty=2)+
@@ -83,12 +75,10 @@ abd <- ggplot(Annual.Mean, mapping = aes(x = Year, y = Strat.abd))+geom_smooth(c
 
 ggsave("output2/abundance.png",abd,dpi=300,width=8,height=6,units="in")
 
-
+#Combining the two figures using patchwork and saving
 p1 = bm+labs(tag="A")
 p2 = abd+labs(tag="B")
-
 merged_plots = p1 + p2 
-
 ggsave("output2/bm_abd.png",merged_plots,dpi=300,width=12,height=6,units="in")
 
 
@@ -104,14 +94,7 @@ ggsave("output2/bm_abd.png",merged_plots,dpi=300,width=12,height=6,units="in")
 
 
 
-
-
-
-
-
-
-
-
+##Currently Code is not used below
 
 ## Merge dataframe to polot against eachother
 
