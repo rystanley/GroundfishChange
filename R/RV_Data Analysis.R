@@ -1,4 +1,4 @@
-
+#Note to self: Will need to repeat these ecdfs for each region and decide upon and suitable middle range of data (i.e 90% of the data = 5% margins .05,.95)
 ## Load Packages ----
 
 library(tidyverse) #dplyr and tidyr
@@ -81,7 +81,11 @@ p2 = e2+labs(tag="B")
 e3 = p1 + p2 
 
 ggsave("output2/ecdf_merged.png",e3,dpi=300,width=12,height=6,units="in")
-## Abundance #code above changed so this is probably wont work properly
+
+
+
+
+## Abundance #code above changed so this is probably wont work properly (ptobably just replace this with other regions*)
 p1 = ggplot() + 
   geom_density_ridges_gradient(filter(abun_temp, Season == "SUMMER"), 
        mapping = aes(x=Temp,y= 0.3, fill = stat(x)))+
@@ -119,58 +123,3 @@ p3 = ggplot(filter(abun_depth, Season == "SUMMER", !is.na(Depth)),
 ggsave("output2/density_depth.pdf",p3,dpi=300,width=8,height=6,units="in")
 
 
- 
-
-
-
-
-## Abundance Plots ----
-
-bio_abun = rv %>% group_by(Year, Season) %>% summarise(Abundance = sum(Abundance), Kg = sum(Kg))
-
-
-ggplot(bio_abun, aes(x = Year, y = Abundance, colour = Season)) + geom_point() +
-  geom_smooth() + theme(axis.line = element_line(colour = "black"),
-                        panel.grid.major = element_blank(),
-                        panel.grid.minor = element_blank(),
-                        panel.background = element_blank())
-
-ggplot(bio_abun, aes(x = Year, y = Abundance)) + geom_point() +
-  geom_smooth() + theme(axis.line = element_line(colour = "black"),
-                        panel.grid.major = element_blank(),
-                        panel.grid.minor = element_blank(),
-                        panel.background = element_blank())
-
-
-## Biomass Plots ----
-
-ggplot(bio_abun, aes(x = Year, y = Kg, colour = Season)) + geom_point() +
-  geom_smooth() + theme(axis.line = element_line(colour = "black"),
-                        panel.grid.major = element_blank(),
-                        panel.grid.minor = element_blank(),
-                        panel.background = element_blank())
-
-ggplot(bio_abun, aes(x = Year, y = Kg)) + geom_point() +
-  geom_smooth() + theme(axis.line = element_line(colour = "black"),
-                        panel.grid.major = element_blank(),
-                        panel.grid.minor = element_blank(),
-                        panel.background = element_blank())
-
-
-## Biomass vs GDD ----
-
-#will probably have to create a data frame in GDD file for total GDD in
-total_gdd = GDD %>% filter(grepl("4T|4S|4R", GDD$ZONE))%>% 
-  group_by(Year)%>% 
-  summarise(Tgdd = sum(sGDD))
-
-bio_gdd = merge(bio_abun %>% filter(Season == "SUMMER") %>% select(Year, Kg),total_gdd, by = "Year")
-
-
-#Try this again with the summer GDD of SS
-#Make sure the total GDD in groups (SS, GSL or NF) are divided (or scaled) by the number of points in all the NAFO zones associated with them
-ggplot(bio_gdd, aes(x = Tgdd, y = Kg)) + geom_point() +
-  geom_smooth(method = "lm") + theme(axis.line = element_line(colour = "black"),
-                                     panel.grid.major = element_blank(),
-                                     panel.grid.minor = element_blank(),
-                                     panel.background = element_blank())
