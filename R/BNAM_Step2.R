@@ -13,7 +13,6 @@ library(sf)
 
 
 ## Bottom Temperature Data Prep ----
-
   ##Load RData file of processed data
     load("data/BNAM_Step1.RData")
 
@@ -78,41 +77,7 @@ prop_hab <- hab_group%>%spread(key=Habitat,value=n)%>%
             select(Year, ZONE, Preferred, Good)%>%
             gather(Preferred:Good, key = Habitat, value = Proportion) #melting data to long format
 
-    # #create character vector containg all unique habitat names
-    # #create dataframe containing all zones by year
-    # habitats = c(unique(hab_group$Habitat))
-    # total_hab = filter(hab_group , Habitat == "Good")[,1:2]
-    # 
-    # #assign the count of each habitat by zone and year to a new column of total_hab and name them accordingly
-    # for(i in 1:3){
-    #   nam = habitats[i]
-    #   total_hab[,i+2] =filter(hab_group, Habitat == habitats[i])[,4]
-    # }
-    # names(total_hab)[-(1:2)] = habitats
-
-    # 
-    # #create new dataframe with year, zone, habitat and actualy numbers to calculate percentages
-    # #create new dataframe where some vars are not exclusive i.e good should include Preferred
-    # 
-    # prop_hab = total_hab
-    # prop_hab$Total = total_hab$Good + total_hab$Preferred + total_hab$Not_suitable 
-    # prop_hab$Good = total_hab$Good + total_hab$Preferred
-
-    # convert numbers to proportions
-    # prop_hab$Preferred = prop_hab$Preferred/prop_hab$Total
-    # prop_hab$Good = prop_hab$Good/prop_hab$Total
-
-
-    # #clean up data frame
-    # prop_hab = prop_hab %>% select(Year, ZONE, Preferred, Good)
-    # 
-    # #melting data to long format
-    # #must be a data.table to melt 
-    # prop_hab = prop_hab %>% gather(Preferred:Good, key = Habitat, value = Proportion)
-
 save(prop_hab, file = "data/BNAM_hab.RData")
-
-
 
 ## GDD Data Prep ----
 
@@ -123,7 +88,6 @@ save(prop_hab, file = "data/BNAM_hab.RData")
     filter(Longitude >= -73, Longitude <= -40 ,Latitude >= 38, Latitude <= 53) %>% 
     rename(M1 = BTmp_M1, M2 = BTmp_M2, M3 = BTmp_M3, M4 = BTmp_M4, M5 = BTmp_M5, M6 = BTmp_M6, M7 = BTmp_M7, M8 = BTmp_M8,
            M9 = BTmp_M9, M10 = BTmp_M10, M11 = BTmp_M11, M12 = BTmp_M12)
-
 
 #convert to sf object with assigned projection
 #assign each point a "ZONE" based on the NAFO zones (takes some time)
@@ -137,18 +101,13 @@ save(prop_hab, file = "data/BNAM_hab.RData")
   gdd = gdd %>% st_set_geometry(NULL)%>%
     filter(grepl("[34]", ZONE))
 
-
-
-
 ## GDD Calculation Prep ----
   gdd = gdd %>%  gather(M1:M12, key = Month, value = Temp) %>% mutate(Depth_range = ifelse(Depth >= 25 & Depth <= 400, "Within", "Outside"), DPM = ifelse(grepl("//bM1//b|M3|M5|M7|M8|M10|M12", .$Month), 31, ifelse(grepl("M4|M6|M9|M11", .$Month), 30, 28))) %>% 
     mutate(GDD = Temp*DPM)
   
-  
 #Create new data frame with juvenile habitat depth range 
   gdd_dep = filter(gdd, Depth_range == "Within")
-  
-
+ 
 ## GDD Estimate Scaled Mean #1 ----
 
 #Reduce select only temperatures above 3 degrees for scaled calculation
