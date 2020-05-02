@@ -1,4 +1,4 @@
-setwd("~/School 2019-2020/Halibut")
+setwd("~/School 2019-2020/Halibut") #change working directory (i don't think i need this)*
 library(R.matlab)
 library(tidyverse)
 library(data.table)
