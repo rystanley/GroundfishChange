@@ -1,13 +1,5 @@
-library(data.table)
-library(sp)
-library(sf) 
-library(ggplot2)
-library(here)
+library(data.table) 
 library(tidyverse)
-library(rnaturalearth)
-library(Hmisc)
-
-
 
 ######Read in csv files
 setwd("~/School 2019-2020/Halibut/BIO/Bottom_temp_raw_files")
