@@ -4,41 +4,31 @@ library(data.table)
 library(viridis)
 library(ggplot2)
 
-library(sp)
-
-
-library(here)
-
-library(rnaturalearth)
-library(Hmisc)
-
-
+library(sp) #not sure if i use this package will have to check
 
 #Load Data
 load("data/BNAM_T.RData")#the Rdata file here needs to be fixed since it doesn't contain zone anymore
 
 ## Plotting Average Bottom Temperature ----
 
-avg_btmp = temp %>% select("Year", "ZONE", "Depth", "Winter_AVG", "Summer_AVG", "Annual_AVG") %>% group_by(Year, ZONE) %>% 
-  summarise_all(list(mean))
-
-
+avg_btmp = temp %>% 
+           select("Year", "ZONE", "Depth", "Winter_AVG", "Summer_AVG", "Annual_AVG") %>% 
+           group_by(Year, ZONE) %>% 
+           summarise_all(list(mean))
 
 ###Total Bottom Temperature trend by NAFO zone for each season
 #Melting data into long format for implementing season as group
 Avg_btm_temp_2 = melt.data.table(as.data.table(avg_btmp), id.vars = c("Year","ZONE", "Depth")) %>% 
-  rename(Season = variable, Temperature = value) 
+                 rename(Season = variable, Temperature = value) 
 
-
-
-
+#Adding Region Column (named stock, will have to change*)
 Avg_btm_temp_2$Stock =  ifelse(grepl("4T|4S|4R", Avg_btm_temp_2$ZONE), "GSL",
                          ifelse(grepl("4X|4W|4Vs|4Vn", Avg_btm_temp_2$ZONE), "SS", 
                                 ifelse(grepl("3Pn|3Ps|3O|3N|3L|3M|3K", Avg_btm_temp_2$ZONE), "NF", NA)))
 
-
 Avg_btm_temp_2$Stock <- factor(Avg_btm_temp_2$Stock, levels=c("SS", "GSL", "NF"))
 
+#Plotting Annual Average Temperature 
 p1 <- ggplot(filter(Avg_btm_temp_2, Season == "Annual_AVG", !is.na(Stock)), 
              aes(x = Year, y = Temperature,  colour = ZONE))+ 
   geom_line()+ 
@@ -81,6 +71,7 @@ prop_hab$Proportion = prop_hab$Proportion*100
 
 prop_hab$Stock <- factor(prop_hab$Stock, levels=c("SS", "GSL", "NF"))
 
+#Plotting Preffered habitat over time (will be different due to new windows*)
 p2 <- ggplot(filter(prop_hab, Habitat == "Preferred", !is.na(Stock), ZONE != "3M"), 
        aes(x = Year, y = Proportion,  colour = ZONE))+ 
   geom_line()+ 
@@ -101,33 +92,19 @@ p2 <- ggplot(filter(prop_hab, Habitat == "Preferred", !is.na(Stock), ZONE != "3M
 
 ggsave("output2/pref-hab_percent.png",p2,dpi=300,width=8,height=6,units="in")
 
-####
-
-#ggplot(filter(prop_hab, Habitat == "Good"), aes(x = Year, y = Proportion)) + 
-  #geom_line() + facet_wrap(~ZONE, scales = "free") +
-  #geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
-                                             #     panel.grid.major = element_blank(),
-                                            #      panel.grid.minor = element_blank(),
-                                            #      panel.background = element_blank()) +
- # ggtitle("Proportion of Good Habitat")
-
-
-
 
 ## GDD Plots ----
 
 load("data/GDD.RData")
 #Plot of the average GDD for each NAFO zone by season
-
-
-## Second plot to transfer over
-
+#Grouping by region(stock* need to change)
 GDD$Stock = ifelse(grepl("4T|4S|4R", GDD$ZONE), "GSL",
                    ifelse(grepl("4X|4W|4Vs|4Vn", GDD$ZONE), "SS", 
                           ifelse(grepl("3Pn|3Ps|3O|3N|3L|3M|3K", GDD$ZONE), "NF", NA)))
 
 GDD$Stock <- factor(GDD$Stock, levels=c("SS", "GSL", "NF"))
 
+#Plotting GDD by region (may be different by region? depending on how we define it*)
 p3 <- ggplot(GDD %>% filter(ZONE != "3M"), aes(x = Year, y = sGDD,  colour = ZONE))+ 
   geom_line()+ 
   geom_smooth(method = "lm", aes(colour = ZONE), se = FALSE)+
@@ -144,28 +121,6 @@ p3 <- ggplot(GDD %>% filter(ZONE != "3M"), aes(x = Year, y = sGDD,  colour = ZON
   labs(colour = "NAFO\nDivision", y = "GDD\n", x = "\nYear");p3
 
 ggsave("output2/GDD.png",p3,dpi=300,width=8,height=6,units="in")
-
-#########
-
-
-# GDD Estimate 2 Plot (Average GDD of all depth between 25-200)
-ggplot(GDD, aes(x = Year, y = mGDD)) + 
-  geom_line() + facet_wrap(~ZONE, scales = "free") + 
-  geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
-                                                  panel.grid.major = element_blank(),
-                                                  panel.grid.minor = element_blank(),
-                                                  panel.background = element_blank()) +
-  ggtitle("Annual Average GDD")
-
-
-# GDD Estimate 3 Plot (average number of days > 3, within the depth range)  
-ggplot(GDD, aes(x = Year, y = Avg_days)) + 
-  geom_line() + facet_wrap(~ZONE, scales = "free") + 
-  geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
-                                                  panel.grid.major = element_blank(),
-                                                  panel.grid.minor = element_blank(),
-                                                  panel.background = element_blank()) +
-  ggtitle("Avgerage Number of Days > 3")
 
 
 
@@ -206,79 +161,4 @@ ggsave("output/Summer_average_temp-groups.png",p2,dpi=600,width=8,height=6,units
 
 
 
-
-#################Plots with Trend Lines##############################
-
-###Total Bottom Temperature trend by NAFO zone for each season
-#Melting data into long format for implementing season as group
-
-###Averaege Temperature by stock
-ggplot(stock_temp, aes(x = Year, y = Ann_AVG, colour = Stock)) + 
-  geom_line() + geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
-                                                                panel.grid.major = element_blank(),
-                                                                panel.grid.minor = element_blank(),
-                                                                panel.background = element_blank()) +
-  ggtitle("Annual Bottom Temperature")
-
-###Proportion of habitat type by zone for Preferred and good temperatures with and without Preferred depth
-
-ggplot(percent_pref, aes(x = Year, y = proportion)) + 
-  geom_line() + facet_wrap(~ZONE, scales = "free") +
-  geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
-                                                  panel.grid.major = element_blank(),
-                                                  panel.grid.minor = element_blank(),
-                                                  panel.background = element_blank()) +
-  ggtitle("Proportion of Preferred Habitat")
-
-
-ggplot(percent_good, aes(x = Year, y = proportion)) + 
-  geom_line() + facet_wrap(~ZONE, scales = "free") + 
-  geom_smooth(method = "lm") + theme_bw() + theme(axis.line = element_line(colour = "black"),
-                                                  panel.grid.major = element_blank(),
-                                                  panel.grid.minor = element_blank(),
-                                                  panel.background = element_blank()) +
-  ggtitle("Proportion of Good Habitat")
-
-
-
-
-###Proportion of habitat type by stock for Preferred and good temperatures with and without Preferred depth
-filter(stock_hab, Habitat_suitability == "Preferred") %>%  
-  ggplot(aes(x = Year, y = proportion, colour = Stock)) + 
-  geom_line() +
-  geom_smooth(method = "lm") + theme(axis.line = element_line(colour = "black"),
-                                     panel.grid.major = element_blank(),
-                                     panel.grid.minor = element_blank(),
-                                     panel.background = element_blank()) +
-  ggtitle("Proportion of Preferred Habitat")
-
-
-
-filter(stock_hab, Habitat_suitability == "Good") %>%  
-  ggplot(aes(x = Year, y = proportion, colour = Stock)) + 
-  geom_line() +
-  geom_smooth(method = "lm") + theme(axis.line = element_line(colour = "black"),
-                                     panel.grid.major = element_blank(),
-                                     panel.grid.minor = element_blank(),
-                                     panel.background = element_blank()) +
-  ggtitle("Proportion of Good Habitat")
-
-
-
-#Plots by Stock
-
-ggplot(filter(gdd_stock, Season == "Annual"), aes(x = Year, y = GDD,  colour = Stock)) + 
-  geom_line() + geom_smooth(method = "lm", aes(colour = Stock)) + theme_bw() + theme(axis.line = element_line(colour = "black"),
-                                                                        panel.grid.major = element_blank(),
-                                                                        panel.grid.minor = element_blank(),
-                                                                        panel.background = element_blank()) +
-  ggtitle("Annual Average GDD")
-
-
-ggplot(filter(gdd_stock, Season != "Annual"), aes(x = Year, y = GDD,  colour = Season)) + facet_wrap(~Stock) +
-  geom_line() + geom_smooth(method = "lm", aes(colour = Season)) + theme_bw() + theme(axis.line = element_line(colour = "black"),
-                                                                                     panel.grid.major = element_blank(),
-                                                                                     panel.grid.minor = element_blank(),
-                                                                                     panel.background = element_blank()) +
-  ggtitle("Stock Average GDD")
 
