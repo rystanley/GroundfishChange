@@ -74,39 +74,58 @@ load("data/GeoRegions.RData")
 
 regidat <- halidat %>%
   st_join(.,GeoRegions,join=st_intersects)%>%
-  mutate(region=as.character(ZONE))
+  mutate(region=as.character(ZONE)) %>% filter(!is.na(region))
 
 regidat$region <- factor(regidat$region, levels=c("SS", "GSL", "NF"))
 
+#Creating data frame for vlines in the ecdf plots
+vdepth <- regidat %>% filter(!is.na(region), !is.na(depth)) %>% 
+  group_by(region, species) %>% 
+  nest() %>% 
+  mutate(
+    ret = map(data, ~quantile(.$depth, probs = c(0.1, 0.9))),
+    ret = invoke_map(tibble, ret)
+  ) %>%
+  unnest(ret) %>% rename(low = "10%", high = "90%" )
 
+vtemp <- regidat %>% filter(!is.na(region), !is.na(temperature)) %>% 
+  group_by(region, species) %>% 
+  nest() %>% 
+  mutate(
+    ret = map(data, ~quantile(.$temperature, probs = c(0.1, 0.9))),
+    ret = invoke_map(tibble, ret)
+  ) %>%
+  unnest(ret) %>% rename(low = "10%", high = "90%" )
+
+
+#Plotting ecdfs ----
 p5 <- ggplot(regidat,aes(x=depth,col=species, linetype = species))+
   stat_ecdf(geom="step",lwd=1)+
   facet_grid(region~.,scales="free_y")+
-  geom_vline(aes(group = region), xintercept=quantile(regidat %>% filter(species == "Halibut", !is.na(depth)) %>%  .$depth, c(.05,.95)),lty=1,col="black")+ 
-  geom_vline(aes(group = region), xintercept=quantile(regidat %>% filter(species == "Survey", !is.na(depth)) %>%  .$depth, c(.05,.95)),lty=2,col="black")+
+  geom_vline(aes(xintercept= low), vdepth, linetype =
+             ifelse(vdepth$species == "Halibut", 1, 2))+
+  geom_vline(aes(xintercept= high), vdepth, linetype =
+               ifelse(vdepth$species == "Halibut", 1, 2))+
   theme_bw()+
   scale_x_log10(limits = c(20,1000))+
   annotation_logticks(sides="b")+
   labs(x="Depth (m)",y="ecdf",col="", linetype = "");p5
 
-ggplot(depth_ecdf, aes(Depth, colour = Group, linetype= Group)) + stat_ecdf(geom = "step", lwd=1.7)  + 
-  scale_x_continuous(breaks = seq(0, 1000, by = 50), limits = c(0,300), expand = c(0,10))+
-  geom_vline(xintercept=quantile(depth_ecdf %>% filter(Group == "Halibut") %>%  .$Depth, c(.05,.95)),lty=1,col="black")+ 
-  geom_vline(xintercept=quantile(depth_ecdf %>% filter(Group == "Survey") %>%  .$Depth, c(.05,.95)),lty=2,col="black")+
-  theme(axis.line = element_line(colour = "black"), panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(), panel.background = element_blank(),
-        legend.position = c(.9, 0.5), axis.title.x = element_text(margin = margin(t = 10)),
-        text = element_text(size=17), axis.text.x = element_text(color = "grey20", size = 14, vjust = .5),
-        axis.text.y = element_text(color = "grey20", size = 14, vjust = .5))+
-  labs(x="Depth (m)",y="Proportion\n",col="", linetype = "");e2
-
 
 p6 <- ggplot(filter(regidat,temperature <= max(filter(regidat,species=="Halibut")%>%pull(temperature),na.rm=T)),
-             aes(x=temperature,col=species))+
-  stat_ecdf(geom="step",lwd=1.5)+
+             aes(x=temperature,col=species, linetype = species))+
+  stat_ecdf(geom="step",lwd=1)+
   facet_grid(region~.,scales="free_y")+
-  theme_bw()+
-  labs(x=expression(paste("Temperature ",degree,"C",sep="")),y="ecdf",col="");p6
+  geom_vline(aes(xintercept= low), vtemp, linetype =
+               ifelse(vtemp$species == "Halibut", 1, 2))+
+  geom_vline(aes(xintercept= high), vtemp, linetype =
+               ifelse(vtemp$species == "Halibut", 1, 2))+
+  scale_x_continuous(limits = c(-1,12))+
+  theme_bw()+ 
+  labs(x=expression(paste("Temperature ",degree,"C",sep="")),
+       y="ecdf",col="", linetype = "");p6
 
-ggsave("output/NAFOTriRegion_HalibutDepth.png",p3,dpi=600,width=6,height=6,units="in")
-ggsave("output/NAFOTriRegion_HalibutTemp.png",p4,dpi=600,width=6,height=6,units="in")
+ggsave("output/NAFOTriRegion_HalibutDepth.png",p5,dpi=600,width=6,height=6,units="in")
+ggsave("output/NAFOTriRegion_HalibutTemp.png",p6,dpi=600,width=6,height=6,units="in")
+
+
