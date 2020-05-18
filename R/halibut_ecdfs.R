@@ -78,7 +78,7 @@ regidat <- halidat %>%
 
 regidat$region <- factor(regidat$region, levels=c("SS", "GSL", "NF"))
 
-#Creating data frame for vlines in the ecdf plots
+#Creating data frame for vlines in the ecdf plots 
 vdepth <- regidat %>% filter(!is.na(region), !is.na(depth)) %>% 
   group_by(region, species) %>% 
   nest() %>% 
@@ -88,6 +88,8 @@ vdepth <- regidat %>% filter(!is.na(region), !is.na(depth)) %>%
   ) %>%
   unnest(ret) %>% rename(low = "10%", high = "90%" )
 
+##@Ryan --
+#This chunk seems to be messing up the upper range for GSL, yet everything other quantile and region is fine... ----
 vtemp <- regidat %>% filter(!is.na(region), !is.na(temperature)) %>% 
   group_by(region, species) %>% 
   nest() %>% 
@@ -96,7 +98,7 @@ vtemp <- regidat %>% filter(!is.na(region), !is.na(temperature)) %>%
     ret = invoke_map(tibble, ret)
   ) %>%
   unnest(ret) %>% rename(low = "10%", high = "90%" )
-
+#chunk ends here, feel free to plot p6 to check
 
 #Plotting ecdfs ----
 p5 <- ggplot(regidat,aes(x=depth,col=species, linetype = species))+
@@ -120,7 +122,8 @@ p6 <- ggplot(filter(regidat,temperature <= max(filter(regidat,species=="Halibut"
                ifelse(vtemp$species == "Halibut", 1, 2))+
   geom_vline(aes(xintercept= high), vtemp, linetype =
                ifelse(vtemp$species == "Halibut", 1, 2))+
-  scale_x_continuous(limits = c(-1,12))+
+  scale_x_continuous(limits = c(-1,12), breaks = seq(0, 12, by = 2))+
+  scale_y_continuous(breaks = seq(0, 1, by = .2))+
   theme_bw()+ 
   labs(x=expression(paste("Temperature ",degree,"C",sep="")),
        y="ecdf",col="", linetype = "");p6
