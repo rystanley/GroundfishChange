@@ -108,6 +108,7 @@ p5 <- ggplot(regidat,aes(x=depth,col=species, linetype = species))+
              ifelse(vdepth$species == "Halibut", 1, 2))+
   geom_vline(aes(xintercept= high), vdepth, linetype =
                ifelse(vdepth$species == "Halibut", 1, 2))+
+  scale_y_continuous(breaks = seq(0, 1, by = .2))+
   theme_bw()+
   scale_x_log10(limits = c(20,1000))+
   annotation_logticks(sides="b")+
