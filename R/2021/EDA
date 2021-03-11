@@ -15,15 +15,18 @@ rv %>% filter(presence == 1, !(is.na(btm_temp) & is.na(depth))) %>% group_by(reg
 rv %>% group_by(presence) %>% count()
 
 
+
+hali <- rv %>% filter(presence == 1)
+
 #Histograms of varaibles
 #Year coverage
-ggplot(rv)+
+ggplot(hali)+
   geom_histogram(aes(year), col = "white") 
 #bottom temperature
-ggplot(rv)+
+ggplot(hali)+
   geom_histogram(aes(btm_temp), col = "white") #Here we have a value of temp that is way too high
 #depth
-ggplot(rv)+
+ggplot(hali)+
   geom_histogram(aes(depth), col = "white")
 
 
@@ -58,38 +61,61 @@ ggplot(rv)+
 
 #PLotting biomass, count and weight by temp and depth
 #Scotian Shelf
-ggplot(rv %>% filter(region == "SS"))+
+ggplot(hali %>% filter(region == "SS"))+
   geom_smooth(aes(x = btm_temp, y = count))
 
-ggplot(rv %>% filter(region == "SS"))+
+ggplot(hali %>% filter(region == "SS"))+
   geom_smooth(aes(x = depth, y = count))
 
 #Southern Gulf
-ggplot(rv %>% filter(region == "SG"))+
+ggplot(hali %>% filter(region == "SG"))+
   geom_smooth(aes(x = btm_temp, y = biomass))
 
-ggplot(rv %>% filter(region == "SG"))+
+ggplot(hali %>% filter(region == "SG"))+
   geom_smooth(aes(x = depth, y = biomass))
 
 # Northern Gulf
-ggplot(rv %>% filter(region == "NG"))+
+ggplot(hali %>% filter(region == "NG"))+
   geom_smooth(aes(x = btm_temp, y = count))
 
-ggplot(rv %>% filter(region == "NG"))+
+ggplot(hali %>% filter(region == "NG"))+
   geom_smooth(aes(x = depth, y = count))
 # Newfoundland
-ggplot(rv %>% filter(region == "NF"))+
+ggplot(hali %>% filter(region == "NF"))+
   geom_smooth(aes(x = btm_temp, y = totwgt)) #total weight not the best to use, it would be best if we had count or biomass
 
-ggplot(rv %>% filter(region == "NF"))+
+ggplot(hali %>% filter(region == "NF"))+
   geom_smooth(aes(x = depth, y = totwgt))
 #USA 
-ggplot(rv %>% filter(region == "USA"))+
+ggplot(hali %>% filter(region == "USA"))+
   geom_smooth(aes(x = btm_temp, y = count))
 
-ggplot(rv %>% filter(region == "USA"))+
+ggplot(hali %>% filter(region == "USA"))+
   geom_smooth(aes(x = depth, y = count))
 
 
+
+
+
+rv2 <- rv %>% mutate(year_group = cut(year, breaks= 10))
+
+
+#Plots over time
+ggplot(rv2)+
+  geom_boxplot(aes(x = as.factor(year_group), y = presence))+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+
+ggplot(hali)+
+  geom_smooth(aes(x = year, y = count))
+
+ggplot(hali)+
+  geom_smooth(aes(x = year, y = totwgt))
+
+ggplot(hali)+
+  geom_smooth(aes(x = year, y = catch))
+
+ggplot(hali)+
+  geom_smooth(aes(x = year, y = biomass))
 
 
