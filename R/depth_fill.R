@@ -41,8 +41,6 @@ sum(is.na(rv$depth_gebco)) #should be zero
 sum(rv$depth_integrated == rv$depth_gebco) #should be the same as the number of missing points
 
 #compare the observed points to the ones extracted from the raster. 
-plot_data <- rv%>%filter(!is.na(depth))
-
 ggplot(data=rv%>%filter(!is.na(depth)),aes(x=depth_integrated,y=depth_gebco))+
    geom_point()
 
@@ -51,6 +49,30 @@ summary(mod)#pretty good fit with a slop of very close to 1 to 1 with a good R s
 #with a large extent. Likely the big depth differences are likely associated with canyons and shelf breaks. It might be advisable to delete the observations that have a gebco extractions 
 #which are well beyond the depth range that you do have data for!
 
+#Lets investigate where the big mismatches are
+
+mismatches <- rv%>%
+              filter(!is.na(depth))%>%
+              mutate(depth = depth *-1,
+                     mismatch = depth - depth_gebco)%>%
+              filter(abs(mismatch)>100)
+
+plot(gebco)
+points(as_Spatial(mismatches),pch=20,cex=0.3) #most of the mismatches are in areas of steep slope.
+              
+   
+#Filter data where GEBCO is used to assign a depth, but that depth is outside the general range of observations for the species. 
+#here i used the 5th percentile. 
+lower = quantile(rv$depth*-1,0.975,na.rm=T)%>%as.numeric() #very shallow cut off 
+upper = quantile(rv$depth*-1,0.025,na.rm=T)%>%as.numeric() #very deep cut off
+
+print(paste("depths between",lower,"and",upper,"m",sep=" "))
+
+rv_filtered <- rv%>%
+               filter(!is.na(depth)|is.na(depth)&depth_gebco<lower&depth_gebco>upper)
+
+  
 #save the output
 write.csv(data.frame(rv)%>%dplyr::select(-geometry),"data/MaritimesDepthFilled.csv",row.names = F)
+write.csv(data.frame(rv_filtered)%>%dplyr::select(-geometry),"data/MaritimesDepthFilled_filtered.csv",row.names=F)
 
