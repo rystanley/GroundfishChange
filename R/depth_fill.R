@@ -32,13 +32,24 @@ rv <- RVdata%>%
 ##there was an error with mutate that I can't really understand 
 rv$depth_gebco <- extract(gebco,as_Spatial(rv))
 
-rv <- rv%>%mutate(depth_integrated = ifelse(is.na(depth),depth_gebco,depth))%>%
+rv <- rv%>%mutate(depth_integrated = ifelse(is.na(depth),depth_gebco,depth*-1))%>%
       st_transform(latlong)
 
 #checks on the output
 sum(is.na(rv$depth)) #the number of missing points
 sum(is.na(rv$depth_gebco)) #should be zero
 sum(rv$depth_integrated == rv$depth_gebco) #should be the same as the number of missing points
+
+#compare the observed points to the ones extracted from the raster. 
+plot_data <- rv%>%filter(!is.na(depth))
+
+ggplot(data=rv%>%filter(!is.na(depth)),aes(x=depth_integrated,y=depth_gebco))+
+   geom_point()
+
+mod=lm(depth_integrated~depth_gebco,data=rv%>%filter(!is.na(depth)))
+summary(mod)#pretty good fit with a slop of very close to 1 to 1 with a good R squared. But you can see there are some big deviations, which is the issue of using a model 
+#with a large extent. Likely the big depth differences are likely associated with canyons and shelf breaks. It might be advisable to delete the observations that have a gebco extractions 
+#which are well beyond the depth range that you do have data for!
 
 #save the output
 write.csv(data.frame(rv)%>%dplyr::select(-geometry),"data/MaritimesDepthFilled.csv",row.names = F)
