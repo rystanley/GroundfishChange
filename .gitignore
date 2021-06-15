@@ -4,5 +4,9 @@
 .Ruserdata
 marmap_coord*.csv
 data/Divisions*
+data/*.xlsx
+data/*.7z
 *.png
 data/*.csv
+inst/*.docx
+*.tif
